@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsManageRouteImport } from './routes/students-manage'
 import { Route as StudentsRouteImport } from './routes/students'
+import { Route as SocialPortfolioRouteImport } from './routes/social-portfolio'
 import { Route as MyTestsRouteImport } from './routes/my-tests'
 import { Route as MyResultsRouteImport } from './routes/my-results'
 import { Route as MyReportRouteImport } from './routes/my-report'
@@ -33,6 +34,11 @@ const StudentsManageRoute = StudentsManageRouteImport.update({
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
   path: '/students',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialPortfolioRoute = SocialPortfolioRouteImport.update({
+  id: '/social-portfolio',
+  path: '/social-portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyTestsRoute = MyTestsRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
+  '/social-portfolio': typeof SocialPortfolioRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
+  '/social-portfolio': typeof SocialPortfolioRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
+  '/social-portfolio': typeof SocialPortfolioRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/my-report'
     | '/my-results'
     | '/my-tests'
+    | '/social-portfolio'
     | '/students'
     | '/students-manage'
     | '/clubs/$id'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/my-report'
     | '/my-results'
     | '/my-tests'
+    | '/social-portfolio'
     | '/students'
     | '/students-manage'
     | '/clubs/$id'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/my-report'
     | '/my-results'
     | '/my-tests'
+    | '/social-portfolio'
     | '/students'
     | '/students-manage'
     | '/clubs/$id'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   MyReportRoute: typeof MyReportRoute
   MyResultsRoute: typeof MyResultsRoute
   MyTestsRoute: typeof MyTestsRoute
+  SocialPortfolioRoute: typeof SocialPortfolioRoute
   StudentsRoute: typeof StudentsRouteWithChildren
   StudentsManageRoute: typeof StudentsManageRoute
   TestIdRoute: typeof TestIdRoute
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/students'
       preLoaderRoute: typeof StudentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social-portfolio': {
+      id: '/social-portfolio'
+      path: '/social-portfolio'
+      fullPath: '/social-portfolio'
+      preLoaderRoute: typeof SocialPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-tests': {
@@ -366,6 +386,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyReportRoute: MyReportRoute,
   MyResultsRoute: MyResultsRoute,
   MyTestsRoute: MyTestsRoute,
+  SocialPortfolioRoute: SocialPortfolioRoute,
   StudentsRoute: StudentsRouteWithChildren,
   StudentsManageRoute: StudentsManageRoute,
   TestIdRoute: TestIdRoute,

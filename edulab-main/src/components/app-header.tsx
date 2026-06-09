@@ -9,7 +9,7 @@ import { useTheme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
 import {
   LogOut, LayoutDashboard, ClipboardList, User as UserIcon,
-  Users, TrendingUp, Moon, Sun, Menu, Trophy,
+  Users, TrendingUp, Moon, Sun, Menu, Trophy, Activity,
 } from "lucide-react";
 
 const NAV_LINK = "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors";
@@ -38,6 +38,7 @@ export function AppHeader() {
     // O'quvchi
     { to: "/my-tests" as const, icon: ClipboardList, label: t("nav_tests"), show: !isAdmin },
     { to: "/my-clubs" as const, icon: Trophy, label: t("nav_clubs"), show: !isAdmin },
+    { to: "/social-portfolio" as const, icon: Activity, label: t("nav_social"), show: !isAdmin },
     { to: "/my-profile" as const, icon: UserIcon, label: t("nav_profile"), show: !isAdmin },
     // Admin
     { to: "/students" as const, icon: Users, label: t("nav_students"), show: isAdmin },

@@ -158,6 +158,81 @@ export type Database = {
           },
         ]
       }
+      student_achievements: {
+        Row: {
+          achieved_at: string | null
+          added_by: string | null
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          level: string
+          result: string
+          student_id: string
+          title: string
+        }
+        Insert: {
+          achieved_at?: string | null
+          added_by?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          result?: string
+          student_id: string
+          title: string
+        }
+        Update: {
+          achieved_at?: string | null
+          added_by?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level?: string
+          result?: string
+          student_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      extracurricular_enrollments: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          direction: string
+          id: string
+          institution_name: string
+          schedule: string | null
+          start_date: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          institution_name: string
+          schedule?: string | null
+          start_date?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          direction?: string
+          id?: string
+          institution_name?: string
+          schedule?: string | null
+          start_date?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           birth_date: string | null
