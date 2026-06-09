@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { CLUB_COLOR_MAP, type Club, type ClubColor } from "@/types/clubs";
@@ -33,9 +32,11 @@ export function ClubCard({
       ? t("clubs_details")
       : t("clubs_view");
 
-  return (
+  const inner = (
     <Card
-      className={`group relative overflow-hidden border transition-all hover:-translate-y-0.5 hover:shadow-lg ${colors.border}`}
+      className={`group relative h-full overflow-hidden border transition-all ${colors.border} ${
+        disabled ? "opacity-70" : "hover:-translate-y-0.5 hover:shadow-lg"
+      }`}
       style={{ boxShadow: "var(--shadow-card)" }}
     >
       {/* Yuqori rang chizig'i */}
@@ -86,25 +87,36 @@ export function ClubCard({
             ))}
         </div>
 
-        {/* Tugma — fallback rejimida o'chirilgan */}
-        {disabled ? (
-          <Button variant="secondary" size="sm" className="w-full" disabled>
-            {ctaLabel}
-          </Button>
-        ) : (
-          <Button
-            asChild
-            variant={isMember ? "outline" : "default"}
-            size="sm"
-            className="w-full"
-          >
-            <Link to="/clubs/$id" params={{ id: club.id }}>
-              {ctaLabel}
-              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        )}
+        {/* CTA — butun karta bosiladi, shuning uchun bu vizual element (nested link bo'lmasligi uchun) */}
+        <div
+          className={`inline-flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition ${
+            disabled
+              ? "bg-muted text-muted-foreground"
+              : isMember
+                ? "border border-input bg-background text-foreground group-hover:bg-accent"
+                : "bg-primary text-primary-foreground group-hover:opacity-90"
+          }`}
+        >
+          {ctaLabel}
+          {!disabled && <ArrowRight className="h-3.5 w-3.5" />}
+        </div>
       </CardContent>
     </Card>
+  );
+
+  // Namuna rejimida — bosib bo'lmaydi
+  if (disabled) {
+    return inner;
+  }
+
+  // Butun karta bosiladigan havola
+  return (
+    <Link
+      to="/clubs/$id"
+      params={{ id: club.id }}
+      className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+    >
+      {inner}
+    </Link>
   );
 }
