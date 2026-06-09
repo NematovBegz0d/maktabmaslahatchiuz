@@ -54,13 +54,14 @@ export function useAuth() {
         .limit(1)
         .maybeSingle();
 
-      if (error) {
+      if (error && import.meta.env.DEV) {
         console.error("[useAuth] user_roles error:", error.message);
       }
-      console.log("[useAuth] uid:", uid, "role row:", data);
       setRole((data?.role as AppRole) ?? "student");
     } catch (e) {
-      console.error("[useAuth] fetchRole exception:", e);
+      if (import.meta.env.DEV) {
+        console.error("[useAuth] fetchRole exception:", e);
+      }
       setRole("student");
     } finally {
       setLoading(false);

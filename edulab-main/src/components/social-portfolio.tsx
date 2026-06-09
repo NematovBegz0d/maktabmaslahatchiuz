@@ -10,6 +10,7 @@ import { AddAchievementDialog } from "@/components/add-achievement-dialog";
 import { AddEnrollmentDialog } from "@/components/add-enrollment-dialog";
 import { ClubBadge } from "@/components/club-badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n, type TranslationKey } from "@/lib/i18n";
 import {
   ENROLLMENT_STATUS_MAP,
   computeEngagement,
@@ -36,6 +37,7 @@ interface SocialPortfolioProps {
 
 export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const [addAchievementOpen, setAddAchievementOpen] = useState(false);
   const [addEnrollmentOpen, setAddEnrollmentOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -115,10 +117,10 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
     try {
       const { error } = await supabase.from("student_achievements").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Yutuq o'chirildi.");
+      toast.success(t("sp_achievement_removed"));
       invalidateAch();
     } catch {
-      toast.error("O'chirishda xatolik.");
+      toast.error(t("delete_error"));
     } finally {
       setDeletingId(null);
     }
@@ -133,10 +135,10 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
         .delete()
         .eq("id", id);
       if (error) throw error;
-      toast.success("Mashg'ulot o'chirildi.");
+      toast.success(t("sp_enrollment_removed"));
       invalidateEnr();
     } catch {
-      toast.error("O'chirishda xatolik.");
+      toast.error(t("delete_error"));
     } finally {
       setDeletingId(null);
     }
@@ -154,8 +156,10 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
                 <Activity className="h-6 w-6" />
               </span>
               <div>
-                <h3 className="font-semibold text-foreground">Ijtimoiy faollik darajasi</h3>
-                <p className={`text-sm font-medium ${engagement.color}`}>{engagement.level}</p>
+                <h3 className="font-semibold text-foreground">{t("sp_engagement")}</h3>
+                <p className={`text-sm font-medium ${engagement.color}`}>
+                  {t(engagement.levelKey as TranslationKey)}
+                </p>
               </div>
             </div>
             <div className="text-right">
@@ -176,17 +180,17 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
             <div className="rounded-lg bg-muted/40 p-3 text-center">
               <Trophy className="mx-auto mb-1 h-4 w-4 text-purple-500" />
               <p className="text-lg font-bold text-foreground">{clubsCount}</p>
-              <p className="text-xs text-muted-foreground">Klublar</p>
+              <p className="text-xs text-muted-foreground">{t("sp_clubs")}</p>
             </div>
             <div className="rounded-lg bg-muted/40 p-3 text-center">
               <Medal className="mx-auto mb-1 h-4 w-4 text-amber-500" />
               <p className="text-lg font-bold text-foreground">{achievements?.length ?? 0}</p>
-              <p className="text-xs text-muted-foreground">Yutuqlar</p>
+              <p className="text-xs text-muted-foreground">{t("sp_achievements")}</p>
             </div>
             <div className="rounded-lg bg-muted/40 p-3 text-center">
               <BookOpen className="mx-auto mb-1 h-4 w-4 text-blue-500" />
               <p className="text-lg font-bold text-foreground">{activeEnrollments}</p>
-              <p className="text-xs text-muted-foreground">Faol mashg'ulot</p>
+              <p className="text-xs text-muted-foreground">{t("sp_active_activity")}</p>
             </div>
           </div>
         </CardContent>
@@ -196,7 +200,7 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
       <Card className="border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
         <CardContent className="p-6">
           <h3 className="mb-4 flex items-center gap-2 font-semibold text-foreground">
-            <Trophy className="h-4 w-4 text-purple-500" /> Klublar
+            <Trophy className="h-4 w-4 text-purple-500" /> {t("sp_clubs")}
           </h3>
           {clubsCount > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2">
@@ -213,7 +217,7 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Hali hech bir klubga a'zo emas.</p>
+            <p className="text-sm text-muted-foreground">{t("sp_no_clubs")}</p>
           )}
         </CardContent>
       </Card>
@@ -223,11 +227,11 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
         <CardContent className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 font-semibold text-foreground">
-              <Medal className="h-4 w-4 text-amber-500" /> Yutuqlar va sertifikatlar
+              <Medal className="h-4 w-4 text-amber-500" /> {t("sp_achievements_title")}
             </h3>
             {canEdit && (
               <Button size="sm" onClick={() => setAddAchievementOpen(true)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Qo'shish
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> {t("add")}
               </Button>
             )}
           </div>
@@ -244,9 +248,7 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
             <div className="rounded-xl border border-dashed border-border py-8 text-center">
               <Medal className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">
-                {canEdit
-                  ? "Hali yutuq qo'shilmagan. \"Qo'shish\" tugmasini bosing."
-                  : "Hali yutuqlar qo'shilmagan."}
+                {canEdit ? t("sp_no_ach_admin") : t("sp_no_ach_student")}
               </p>
             </div>
           ) : (
@@ -270,11 +272,11 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
         <CardContent className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 font-semibold text-foreground">
-              <GraduationCap className="h-4 w-4 text-blue-500" /> Maktabdan tashqari ta'lim
+              <GraduationCap className="h-4 w-4 text-blue-500" /> {t("sp_extracurricular")}
             </h3>
             {canEdit && (
               <Button size="sm" onClick={() => setAddEnrollmentOpen(true)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Qo'shish
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> {t("add")}
               </Button>
             )}
           </div>
@@ -291,9 +293,7 @@ export function SocialPortfolio({ studentId, canEdit }: SocialPortfolioProps) {
             <div className="rounded-xl border border-dashed border-border py-8 text-center">
               <BookOpen className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
               <p className="text-sm text-muted-foreground">
-                {canEdit
-                  ? "Hali mashg'ulot qo'shilmagan. \"Qo'shish\" tugmasini bosing."
-                  : "Hali maktabdan tashqari ta'limga jalb etilmagan."}
+                {canEdit ? t("sp_no_enr_admin") : t("sp_no_enr_student")}
               </p>
             </div>
           ) : (
