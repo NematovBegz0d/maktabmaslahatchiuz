@@ -10,7 +10,6 @@ const translations = {
     nav_profile: "Profil",
     nav_students: "O'quvchilar",
     nav_analytics: "Tahlil",
-    nav_children: "Farzandlarim",
     nav_clubs: "Klublar",
     nav_signout: "Chiqish",
 
@@ -53,12 +52,6 @@ const translations = {
     profile_completeness: "Profil to'liqligi",
     profile_careers: "Tavsiya etilgan kasblar",
     profile_ai_summary: "AI tahlili",
-
-    // Parent
-    parent_title: "Farzandlarim",
-    parent_empty: "Farzand profili topilmadi",
-    parent_recent_results: "So'nggi natijalar",
-    parent_no_results: "Hali test yechilmagan",
 
     // Clubs
     clubs_title: "Maktab Klublari",
@@ -113,7 +106,6 @@ const translations = {
     nav_profile: "Профиль",
     nav_students: "Ученики",
     nav_analytics: "Аналитика",
-    nav_children: "Мои дети",
     nav_clubs: "Клубы",
     nav_signout: "Выйти",
 
@@ -156,12 +148,6 @@ const translations = {
     profile_completeness: "Полнота профиля",
     profile_careers: "Рекомендуемые профессии",
     profile_ai_summary: "Анализ ИИ",
-
-    // Parent
-    parent_title: "Мои дети",
-    parent_empty: "Профиль ребёнка не найден",
-    parent_recent_results: "Последние результаты",
-    parent_no_results: "Тесты ещё не пройдены",
 
     // Clubs
     clubs_title: "Школьные клубы",

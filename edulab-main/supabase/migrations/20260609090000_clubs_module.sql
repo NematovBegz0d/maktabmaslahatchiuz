@@ -1,5 +1,6 @@
 -- ============================================================================
 -- Klublar moduli — clubs + club_members jadvallari, RLS va seed data
+-- Rollar: admin (to'liq boshqaruv) + student (faqat o'z a'zoligini ko'rish)
 -- ============================================================================
 
 -- ─── Klublar jadvali ─────────────────────────────────────────────────────────
@@ -20,16 +21,16 @@ ALTER TABLE public.clubs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Clubs readable by everyone" ON public.clubs
   FOR SELECT USING (true);
 
--- Faqat maslahatchi/admin klub yarata/tahrirlay/o'chira oladi
-CREATE POLICY "Counselors insert clubs" ON public.clubs
+-- Faqat admin klub yarata/tahrirlay/o'chira oladi
+CREATE POLICY "Admins insert clubs" ON public.clubs
   FOR INSERT TO authenticated
-  WITH CHECK (public.has_role(auth.uid(), 'counselor') OR public.has_role(auth.uid(), 'admin'));
-CREATE POLICY "Counselors update clubs" ON public.clubs
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins update clubs" ON public.clubs
   FOR UPDATE TO authenticated
-  USING (public.has_role(auth.uid(), 'counselor') OR public.has_role(auth.uid(), 'admin'));
-CREATE POLICY "Counselors delete clubs" ON public.clubs
+  USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins delete clubs" ON public.clubs
   FOR DELETE TO authenticated
-  USING (public.has_role(auth.uid(), 'counselor') OR public.has_role(auth.uid(), 'admin'));
+  USING (public.has_role(auth.uid(), 'admin'));
 
 -- ─── Klub a'zolari jadvali ───────────────────────────────────────────────────
 CREATE TABLE public.club_members (
@@ -46,33 +47,22 @@ GRANT ALL ON public.club_members TO service_role;
 ALTER TABLE public.club_members ENABLE ROW LEVEL SECURITY;
 
 -- ── O'qish (SELECT) policylari ──
--- O'quvchi o'z a'zoligini ko'ra oladi
+-- O'quvchi faqat o'z a'zoligini ko'ra oladi
 CREATE POLICY "Students read own memberships" ON public.club_members
   FOR SELECT USING (auth.uid() = student_id);
--- Maslahatchi barcha a'zoliklarni ko'ra oladi
-CREATE POLICY "Counselors read memberships" ON public.club_members
-  FOR SELECT USING (public.has_role(auth.uid(), 'counselor'));
 -- Admin barcha a'zoliklarni ko'ra oladi
 CREATE POLICY "Admins read memberships" ON public.club_members
   FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
--- Ota-ona faqat o'z farzandining a'zoligini ko'ra oladi
-CREATE POLICY "Parents read child memberships" ON public.club_members
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = club_members.student_id AND p.parent_id = auth.uid()
-    )
-  );
 
--- ── Yozish (INSERT) — faqat maslahatchi/admin ──
-CREATE POLICY "Counselors add members" ON public.club_members
+-- ── Yozish (INSERT) — faqat admin ──
+CREATE POLICY "Admins add members" ON public.club_members
   FOR INSERT TO authenticated
-  WITH CHECK (public.has_role(auth.uid(), 'counselor') OR public.has_role(auth.uid(), 'admin'));
+  WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
--- ── O'chirish (DELETE) — faqat maslahatchi/admin ──
-CREATE POLICY "Counselors remove members" ON public.club_members
+-- ── O'chirish (DELETE) — faqat admin ──
+CREATE POLICY "Admins remove members" ON public.club_members
   FOR DELETE TO authenticated
-  USING (public.has_role(auth.uid(), 'counselor') OR public.has_role(auth.uid(), 'admin'));
+  USING (public.has_role(auth.uid(), 'admin'));
 
 -- Tezkor qidiruv uchun indekslar
 CREATE INDEX idx_club_members_club_id ON public.club_members(club_id);

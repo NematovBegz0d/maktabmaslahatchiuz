@@ -17,7 +17,7 @@ const PAGE_SIZE = 10;
 
 export const Route = createFileRoute("/students")({
   head: () => ({ meta: [{ title: "O'quvchilar — EduLens" }] }),
-  component: () => (<ProtectedRoute requiredRoles={["counselor", "admin"]}><StudentsList /></ProtectedRoute>),
+  component: () => (<ProtectedRoute requiredRoles={["admin"]}><StudentsList /></ProtectedRoute>),
 });
 
 function StudentsList() {

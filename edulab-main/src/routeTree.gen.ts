@@ -11,17 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsManageRouteImport } from './routes/students-manage'
 import { Route as StudentsRouteImport } from './routes/students'
-import { Route as ParentDashboardRouteImport } from './routes/parent-dashboard'
 import { Route as MyTestsRouteImport } from './routes/my-tests'
 import { Route as MyResultsRouteImport } from './routes/my-results'
 import { Route as MyReportRouteImport } from './routes/my-report'
 import { Route as MyProfileRouteImport } from './routes/my-profile'
+import { Route as MyClubsRouteImport } from './routes/my-clubs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TestIdRouteImport } from './routes/test.$id'
 import { Route as StudentsIdRouteImport } from './routes/students.$id'
+import { Route as ClubsIdRouteImport } from './routes/clubs.$id'
 
 const StudentsManageRoute = StudentsManageRouteImport.update({
   id: '/students-manage',
@@ -31,11 +33,6 @@ const StudentsManageRoute = StudentsManageRouteImport.update({
 const StudentsRoute = StudentsRouteImport.update({
   id: '/students',
   path: '/students',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ParentDashboardRoute = ParentDashboardRouteImport.update({
-  id: '/parent-dashboard',
-  path: '/parent-dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyTestsRoute = MyTestsRouteImport.update({
@@ -58,9 +55,19 @@ const MyProfileRoute = MyProfileRouteImport.update({
   path: '/my-profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MyClubsRoute = MyClubsRouteImport.update({
+  id: '/my-clubs',
+  path: '/my-clubs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClubsRoute = ClubsRouteImport.update({
+  id: '/clubs',
+  path: '/clubs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -88,19 +95,26 @@ const StudentsIdRoute = StudentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => StudentsRoute,
 } as any)
+const ClubsIdRoute = ClubsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ClubsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
-  '/parent-dashboard': typeof ParentDashboardRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
+  '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
 }
@@ -108,14 +122,16 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
-  '/parent-dashboard': typeof ParentDashboardRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
+  '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
 }
@@ -124,14 +140,16 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
   '/my-report': typeof MyReportRoute
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
-  '/parent-dashboard': typeof ParentDashboardRoute
   '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
+  '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
 }
@@ -141,14 +159,16 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/auth'
+    | '/clubs'
     | '/dashboard'
+    | '/my-clubs'
     | '/my-profile'
     | '/my-report'
     | '/my-results'
     | '/my-tests'
-    | '/parent-dashboard'
     | '/students'
     | '/students-manage'
+    | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -156,14 +176,16 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/auth'
+    | '/clubs'
     | '/dashboard'
+    | '/my-clubs'
     | '/my-profile'
     | '/my-report'
     | '/my-results'
     | '/my-tests'
-    | '/parent-dashboard'
     | '/students'
     | '/students-manage'
+    | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
   id:
@@ -171,14 +193,16 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/auth'
+    | '/clubs'
     | '/dashboard'
+    | '/my-clubs'
     | '/my-profile'
     | '/my-report'
     | '/my-results'
     | '/my-tests'
-    | '/parent-dashboard'
     | '/students'
     | '/students-manage'
+    | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
   fileRoutesById: FileRoutesById
@@ -187,12 +211,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
+  ClubsRoute: typeof ClubsRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  MyClubsRoute: typeof MyClubsRoute
   MyProfileRoute: typeof MyProfileRoute
   MyReportRoute: typeof MyReportRoute
   MyResultsRoute: typeof MyResultsRoute
   MyTestsRoute: typeof MyTestsRoute
-  ParentDashboardRoute: typeof ParentDashboardRoute
   StudentsRoute: typeof StudentsRouteWithChildren
   StudentsManageRoute: typeof StudentsManageRoute
   TestIdRoute: typeof TestIdRoute
@@ -212,13 +237,6 @@ declare module '@tanstack/react-router' {
       path: '/students'
       fullPath: '/students'
       preLoaderRoute: typeof StudentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/parent-dashboard': {
-      id: '/parent-dashboard'
-      path: '/parent-dashboard'
-      fullPath: '/parent-dashboard'
-      preLoaderRoute: typeof ParentDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-tests': {
@@ -249,11 +267,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MyProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/my-clubs': {
+      id: '/my-clubs'
+      path: '/my-clubs'
+      fullPath: '/my-clubs'
+      preLoaderRoute: typeof MyClubsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clubs': {
+      id: '/clubs'
+      path: '/clubs'
+      fullPath: '/clubs'
+      preLoaderRoute: typeof ClubsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -291,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentsIdRouteImport
       parentRoute: typeof StudentsRoute
     }
+    '/clubs/$id': {
+      id: '/clubs/$id'
+      path: '/$id'
+      fullPath: '/clubs/$id'
+      preLoaderRoute: typeof ClubsIdRouteImport
+      parentRoute: typeof ClubsRoute
+    }
   }
 }
 
@@ -306,16 +345,27 @@ const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
   StudentsRouteChildren,
 )
 
+interface ClubsRouteChildren {
+  ClubsIdRoute: typeof ClubsIdRoute
+}
+
+const ClubsRouteChildren: ClubsRouteChildren = {
+  ClubsIdRoute: ClubsIdRoute,
+}
+
+const ClubsRouteWithChildren = ClubsRoute._addFileChildren(ClubsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
+  ClubsRoute: ClubsRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  MyClubsRoute: MyClubsRoute,
   MyProfileRoute: MyProfileRoute,
   MyReportRoute: MyReportRoute,
   MyResultsRoute: MyResultsRoute,
   MyTestsRoute: MyTestsRoute,
-  ParentDashboardRoute: ParentDashboardRoute,
   StudentsRoute: StudentsRouteWithChildren,
   StudentsManageRoute: StudentsManageRoute,
   TestIdRoute: TestIdRoute,

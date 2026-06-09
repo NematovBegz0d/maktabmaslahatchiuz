@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ClipboardList, CheckCircle2, Sparkles, ArrowRight,
-  Users, TrendingUp, Brain, Baby, FileText,
+  Users, TrendingUp, Brain, FileText,
   UserPlus, AlertCircle, BarChart3, GraduationCap,
 } from "lucide-react";
 
@@ -32,8 +32,7 @@ function Dashboard() {
     );
   }
 
-  if (role === "counselor" || role === "admin") return <CounselorDashboard />;
-  if (role === "parent") return <ParentDashboard />;
+  if (role === "admin") return <AdminDashboard />;
   return <StudentDashboard />;
 }
 
@@ -217,10 +216,10 @@ function StudentDashboard() {
   );
 }
 
-/* ─── MASLAHATCHI ADMIN PANEL ───────────────────────────────────────────── */
-function CounselorDashboard() {
+/* ─── ADMIN PANEL ───────────────────────────────────────────────────────── */
+function AdminDashboard() {
   const { data: students, isLoading: studentsLoading } = useQuery({
-    queryKey: ["counselor-students"],
+    queryKey: ["admin-students"],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
@@ -231,7 +230,7 @@ function CounselorDashboard() {
   });
 
   const { data: sessions } = useQuery({
-    queryKey: ["counselor-sessions"],
+    queryKey: ["admin-sessions"],
     queryFn: async () => {
       const { data } = await supabase
         .from("test_sessions")
@@ -243,7 +242,7 @@ function CounselorDashboard() {
   });
 
   const { data: spData } = useQuery({
-    queryKey: ["counselor-sp"],
+    queryKey: ["admin-sp"],
     queryFn: async () => {
       const { data } = await supabase
         .from("student_profiles")
@@ -294,7 +293,7 @@ function CounselorDashboard() {
         {/* Sarlavha */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Maslahatchi paneli</h1>
+            <h1 className="text-2xl font-bold text-foreground">Admin paneli</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">
               EduLens — maktab psixologik monitoring tizimi
             </p>
@@ -443,33 +442,6 @@ function CounselorDashboard() {
           ))}
         </div>
 
-      </main>
-    </div>
-  );
-}
-
-/* ─── OTA-ONA ───────────────────────────────────────────────────────────── */
-function ParentDashboard() {
-  return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Ota-ona paneli</h1>
-          <p className="mt-1 text-muted-foreground">Farzandlaringizning test natijalari va progressi</p>
-        </div>
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="flex items-center gap-4 p-6">
-            <Baby className="h-10 w-10 text-primary shrink-0" />
-            <div>
-              <p className="font-semibold text-foreground">Farzandlarimning portfoliosi</p>
-              <p className="text-sm text-muted-foreground">Test natijalari, psixologik profil va kasb tavsiyalarini ko'ring</p>
-            </div>
-            <Button asChild className="ml-auto shrink-0">
-              <Link to="/parent-dashboard">Ochish <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
-            </Button>
-          </CardContent>
-        </Card>
       </main>
     </div>
   );

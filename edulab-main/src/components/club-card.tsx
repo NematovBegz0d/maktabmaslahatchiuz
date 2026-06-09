@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Users, ArrowRight, CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { CLUB_COLOR_MAP, type Club, type ClubColor } from "@/types/clubs";
+import type { AppRole } from "@/hooks/use-auth";
 
 interface ClubCardProps {
   club: Club;
   memberCount?: number;
   isMember?: boolean;
-  role?: "counselor" | "admin" | "student" | "parent" | null;
+  role?: AppRole | null;
   /** Namuna (fallback) rejimida — detal sahifaga o'tib bo'lmaydi */
   disabled?: boolean;
 }
@@ -24,9 +25,9 @@ export function ClubCard({
 }: ClubCardProps) {
   const { t } = useI18n();
   const colors = CLUB_COLOR_MAP[club.color as ClubColor] ?? CLUB_COLOR_MAP.blue;
-  const isStaff = role === "counselor" || role === "admin";
+  const isAdmin = role === "admin";
 
-  const ctaLabel = isStaff
+  const ctaLabel = isAdmin
     ? t("clubs_manage")
     : isMember
       ? t("clubs_details")
@@ -59,8 +60,8 @@ export function ClubCard({
             </div>
           </div>
 
-          {/* A'zolar soni (maslahatchi uchun) */}
-          {isStaff && memberCount !== undefined && (
+          {/* A'zolar soni (admin uchun) */}
+          {isAdmin && memberCount !== undefined && (
             <span
               className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${colors.badge}`}
             >

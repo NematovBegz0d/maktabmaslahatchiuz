@@ -25,7 +25,7 @@ export const Route = createFileRoute("/clubs")({
 function ClubsPage() {
   const { user, role } = useAuth();
   const { t } = useI18n();
-  const isStaff = role === "counselor" || role === "admin";
+  const isAdmin = role === "admin";
 
   // DB dan klublar (id lar bilan)
   const {
@@ -62,7 +62,7 @@ function ClubsPage() {
   // O'quvchi uchun — o'zining klublari
   const { data: myMemberships } = useQuery({
     queryKey: ["my-club-memberships", user?.id],
-    enabled: !!user && !isStaff,
+    enabled: !!user && !isAdmin,
     queryFn: async () => {
       const { data } = await supabase
         .from("club_members")
@@ -109,7 +109,7 @@ function ClubsPage() {
             <Trophy className="h-7 w-7 text-primary" /> {t("clubs_title")}
           </h1>
           <p className="mt-1.5 text-muted-foreground">
-            {isStaff ? t("clubs_subtitle_staff") : t("clubs_subtitle_student")}
+            {isAdmin ? t("clubs_subtitle_staff") : t("clubs_subtitle_student")}
           </p>
         </div>
 
@@ -117,8 +117,8 @@ function ClubsPage() {
           <QueryError onRetry={() => refetchClubs()} />
         ) : (
           <>
-            {/* ── Statistika (faqat maslahatchi/admin) ── */}
-            {isStaff && (
+            {/* ── Statistika (faqat admin) ── */}
+            {isAdmin && (
               <div className="mb-8 grid gap-4 sm:grid-cols-3">
                 <StatCard
                   label={t("clubs_total")}
@@ -142,7 +142,7 @@ function ClubsPage() {
             )}
 
             {/* ── O'quvchi uchun stat ── */}
-            {!isStaff && (
+            {!isAdmin && (
               <div className="mb-8 grid gap-4 sm:grid-cols-2">
                 <StatCard
                   label={t("clubs_total")}
@@ -184,7 +184,7 @@ function ClubsPage() {
             ) : (
               <>
                 {/* DB bo'sh bo'lsa ogohlantirish (gridtdan oldin) */}
-                {isFallback && isStaff && (
+                {isFallback && isAdmin && (
                   <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
                     ⚠️ Klublar hali databazaga qo'shilmagan. Quyidagi klublar namuna
                     ko'rinishida ko'rsatilmoqda. Ularni Supabase migratsiyasi orqali seed

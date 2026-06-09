@@ -61,7 +61,7 @@ function ClubDetailPage() {
   const { id } = Route.useParams();
   const { role } = useAuth();
   const { t } = useI18n();
-  const isStaff = role === "counselor" || role === "admin";
+  const isAdmin = role === "admin";
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -117,7 +117,7 @@ function ClubDetailPage() {
   // Faqat 'student' rolidagilarni olamiz (profiles hamma userlarni saqlaydi).
   const { data: allStudents } = useQuery({
     queryKey: ["students-for-clubs"],
-    enabled: isStaff,
+    enabled: isAdmin,
     queryFn: async () => {
       const [{ data: profilesData }, { data: roleRows }] = await Promise.all([
         supabase
@@ -298,7 +298,7 @@ function ClubDetailPage() {
               </div>
 
               {/* A'zolar soni — faqat staff uchun (RLS o'quvchiga to'liq sonni bermaydi) */}
-              {isStaff && (
+              {isAdmin && (
                 <div className={`rounded-xl px-5 py-3 text-center ${colors.soft}`}>
                   <p className={`text-3xl font-bold ${colors.text}`}>
                     {members?.length ?? 0}
@@ -309,7 +309,7 @@ function ClubDetailPage() {
             </div>
 
             {/* Sinf bo'yicha breakdown — faqat staff */}
-            {isStaff && Object.keys(classCounts).length > 0 && (
+            {isAdmin && Object.keys(classCounts).length > 0 && (
               <div className="mt-5 border-t border-border/40 pt-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("clubs_by_class")}
@@ -333,7 +333,7 @@ function ClubDetailPage() {
         </Card>
 
         {/* ── A'zolar bo'limi — faqat maslahatchi/admin ko'radi ── */}
-        {isStaff ? (
+        {isAdmin ? (
           <Card className="border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
             <CardContent className="p-6">
               {/* Header + qidiruv + qo'shish */}
@@ -480,7 +480,7 @@ function ClubDetailPage() {
       </main>
 
       {/* ── A'zo qo'shish modali (faqat staff) ── */}
-      {isStaff && (
+      {isAdmin && (
         <Dialog open={addOpen} onOpenChange={setAddOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
