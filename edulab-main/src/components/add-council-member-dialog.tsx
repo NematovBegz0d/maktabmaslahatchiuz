@@ -47,20 +47,16 @@ export function AddCouncilMemberDialog({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Faqat 'student' rolidagilarni olamiz
+  // Faqat 'student' rolidagilar — student_directory view orqali (bitta so'rov)
   const { data: students } = useQuery({
     queryKey: ["students-for-council"],
     enabled: open,
     queryFn: async () => {
-      const [{ data: profilesData }, { data: roleRows }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, full_name, class_number, class_letter")
-          .order("full_name", { ascending: true }),
-        supabase.from("user_roles").select("user_id").eq("role", "student"),
-      ]);
-      const ids = new Set((roleRows ?? []).map((r) => r.user_id));
-      return (profilesData ?? []).filter((p) => ids.has(p.id));
+      const { data } = await supabase
+        .from("student_directory")
+        .select("id, full_name, class_number, class_letter")
+        .order("full_name", { ascending: true });
+      return data ?? [];
     },
   });
 

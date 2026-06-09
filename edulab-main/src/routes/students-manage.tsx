@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ProtectedRoute } from "@/components/protected-route";
 import { AppHeader } from "@/components/app-header";
@@ -123,9 +123,17 @@ async function createStudent(payload: {
   return data;
 }
 
+// O'quvchi qo'shilgach yangilanishi kerak bo'lgan keshlar (5 daq staleTime tufayli majburiy)
+function invalidateStudentLists(qc: ReturnType<typeof useQueryClient>) {
+  ["students-list", "admin-students", "admin-sp", "analytics-students",
+   "analytics-profiles", "students-for-council", "students-for-clubs"]
+    .forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+}
+
 // ─── Single student form ──────────────────────────────────────────────────────
 function SingleStudentForm() {
   const { data: schools = [] } = useSchools();
+  const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<AddResult | null>(null);
 
@@ -161,6 +169,7 @@ function SingleStudentForm() {
       const status = res.updated ? "updated" : "ok";
       setResult({ full_name: fullName, passport_series: passport, status });
       toast.success(res.updated ? `${fullName} yangilandi` : `${fullName} muvaffaqiyatli qo'shildi`);
+      invalidateStudentLists(qc); // ro'yxat darhol yangilansin
       // Reset form
       setFullName(""); setPassport(""); setClassNum(""); setClassLet("");
       setSchoolId(""); setGender(""); setBirthDate("");
@@ -287,6 +296,7 @@ function SingleStudentForm() {
 // CSV format: full_name,passport_series,class_number,class_letter
 // Example: Karimov Ali,ibh1234567,9,A
 function BulkImportForm() {
+  const qc = useQueryClient();
   const [csv, setCsv] = useState("");
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<AddResult[]>([]);
@@ -332,6 +342,7 @@ function BulkImportForm() {
 
     setResults(out);
     setBusy(false);
+    invalidateStudentLists(qc); // ro'yxat darhol yangilansin
     const ok = out.filter((r) => r.status !== "error").length;
     const err = out.filter((r) => r.status === "error").length;
     if (err === 0) toast.success(`${ok} ta o'quvchi muvaffaqiyatli qo'shildi`);

@@ -596,7 +596,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_directory: {
+        Row: {
+          birth_date: string | null
+          class_letter: string | null
+          class_number: number | null
+          created_at: string | null
+          full_name: string | null
+          gender: string | null
+          // id — profiles.id (NOT NULL PK) dan keladi, hech qachon null bo'lmaydi
+          id: string
+          parent_id: string | null
+          passport_series: string | null
+          school_id: string | null
+          school_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
@@ -605,6 +629,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      get_my_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {

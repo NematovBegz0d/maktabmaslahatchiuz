@@ -28,9 +28,10 @@ function StudentsList() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["students-list"],
     queryFn: async () => {
+      // student_directory — faqat 'student' rolli profillar; school_name view ichida JOIN qilingan
       const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, class_number, class_letter, school_id, schools(name)")
+        .from("student_directory")
+        .select("id, full_name, class_number, class_letter, school_id, school_name")
         .order("full_name", { ascending: true });
       return data ?? [];
     },
@@ -119,7 +120,7 @@ function StudentsList() {
                           <p className="font-semibold text-foreground">{s.full_name ?? "Noma'lum"}</p>
                           <p className="text-xs text-muted-foreground">
                             {s.class_number ? `${s.class_number}-${s.class_letter ?? ""} sinf` : "Sinf kiritilmagan"}
-                            {s.schools?.name ? ` • ${s.schools.name}` : ""}
+                            {s.school_name ? ` • ${s.school_name}` : ""}
                           </p>
                         </div>
                       </div>

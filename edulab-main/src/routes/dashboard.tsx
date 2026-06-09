@@ -88,7 +88,11 @@ function StudentDashboard() {
   );
   const inProgressSessions = (sessions ?? []).filter((s) => s.status === "in_progress");
   const completedCount = completedIds.size;
-  const completeness = sp?.profile_completeness ?? Math.min(100, Math.round((completedCount / 8) * 100));
+  // Faol testlar soni dinamik (Schulte nofaol qilingach 8 emas, 7) — qattiq kod o'rniga
+  const totalTests = tests?.length ?? 0;
+  const remainingCount = Math.max(0, totalTests - completedCount);
+  const completeness = sp?.profile_completeness
+    ?? (totalTests > 0 ? Math.min(100, Math.round((completedCount / totalTests) * 100)) : 0);
   const topCareer = (sp?.top_careers as any[] | null)?.[0];
 
   // Bajarilmagan testlar
@@ -111,7 +115,7 @@ function StudentDashboard() {
 
         {/* Stat kartalar */}
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <StatCard label="Yechilgan testlar" value={`${completedCount}/8`} icon={CheckCircle2} accent="success" />
+          <StatCard label="Yechilgan testlar" value={`${completedCount}/${totalTests}`} icon={CheckCircle2} accent="success" />
           <StatCard label="Davom etmoqda" value={inProgressSessions.length} icon={ClipboardList} accent="warning" />
           <StatCard label="Portfolio to'liqligi" value={`${completeness}%`} icon={Sparkles} accent="primary" />
         </div>
@@ -123,9 +127,9 @@ function StudentDashboard() {
               <div>
                 <p className="font-semibold text-foreground">Portfolio holati</p>
                 <p className="text-sm text-muted-foreground">
-                  {completedCount === 8
+                  {totalTests > 0 && remainingCount === 0
                     ? "Barcha testlar yakunlandi!"
-                    : `${8 - completedCount} ta test qoldi`}
+                    : `${remainingCount} ta test qoldi`}
                 </p>
               </div>
               <span className="text-2xl font-bold text-primary">{completeness}%</span>
@@ -221,8 +225,9 @@ function AdminDashboard() {
   const { data: students, isLoading: studentsLoading } = useQuery({
     queryKey: ["admin-students"],
     queryFn: async () => {
+      // student_directory — faqat 'student' rolli profillar (admin/maslahatchi chiqarib tashlangan)
       const { data } = await supabase
-        .from("profiles")
+        .from("student_directory")
         .select("id, full_name, class_number, class_letter, created_at")
         .order("created_at", { ascending: false });
       return data ?? [];

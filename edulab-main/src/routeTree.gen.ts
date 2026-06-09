@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestsManageRouteImport } from './routes/tests-manage'
 import { Route as StudentsManageRouteImport } from './routes/students-manage'
 import { Route as SocialPortfolioRouteImport } from './routes/social-portfolio'
 import { Route as MyTestsRouteImport } from './routes/my-tests'
@@ -27,6 +28,11 @@ import { Route as TestIdRouteImport } from './routes/test.$id'
 import { Route as StudentsIdRouteImport } from './routes/students.$id'
 import { Route as ClubsIdRouteImport } from './routes/clubs.$id'
 
+const TestsManageRoute = TestsManageRouteImport.update({
+  id: '/tests-manage',
+  path: '/tests-manage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StudentsManageRoute = StudentsManageRouteImport.update({
   id: '/students-manage',
   path: '/students-manage',
@@ -103,14 +109,14 @@ const TestIdRoute = TestIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudentsIdRoute = StudentsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => StudentsRoute,
+  id: '/students/$id',
+  path: '/students/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ClubsIdRoute = ClubsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ClubsRoute,
+  id: '/clubs/$id',
+  path: '/clubs/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
   '/students-manage': typeof StudentsManageRoute
+  '/tests-manage': typeof TestsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
   '/students-manage': typeof StudentsManageRoute
+  '/tests-manage': typeof TestsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
   '/students-manage': typeof StudentsManageRoute
+  '/tests-manage': typeof TestsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/my-tests'
     | '/social-portfolio'
     | '/students-manage'
+    | '/tests-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/my-tests'
     | '/social-portfolio'
     | '/students-manage'
+    | '/tests-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/my-tests'
     | '/social-portfolio'
     | '/students-manage'
+    | '/tests-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
@@ -244,6 +256,9 @@ export interface RootRouteChildren {
   MyTestsRoute: typeof MyTestsRoute
   SocialPortfolioRoute: typeof SocialPortfolioRoute
   StudentsManageRoute: typeof StudentsManageRoute
+  TestsManageRoute: typeof TestsManageRoute
+  ClubsIdRoute: typeof ClubsIdRoute
+  StudentsIdRoute: typeof StudentsIdRoute
   TestIdRoute: typeof TestIdRoute
   ClubsIndexRoute: typeof ClubsIndexRoute
   StudentsIndexRoute: typeof StudentsIndexRoute
@@ -251,6 +266,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tests-manage': {
+      id: '/tests-manage'
+      path: '/tests-manage'
+      fullPath: '/tests-manage'
+      preLoaderRoute: typeof TestsManageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/students-manage': {
       id: '/students-manage'
       path: '/students-manage'
@@ -358,17 +380,17 @@ declare module '@tanstack/react-router' {
     }
     '/students/$id': {
       id: '/students/$id'
-      path: '/$id'
+      path: '/students/$id'
       fullPath: '/students/$id'
       preLoaderRoute: typeof StudentsIdRouteImport
-      parentRoute: typeof StudentsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/clubs/$id': {
       id: '/clubs/$id'
-      path: '/$id'
+      path: '/clubs/$id'
       fullPath: '/clubs/$id'
       preLoaderRoute: typeof ClubsIdRouteImport
-      parentRoute: typeof ClubsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -386,6 +408,9 @@ const rootRouteChildren: RootRouteChildren = {
   MyTestsRoute: MyTestsRoute,
   SocialPortfolioRoute: SocialPortfolioRoute,
   StudentsManageRoute: StudentsManageRoute,
+  TestsManageRoute: TestsManageRoute,
+  ClubsIdRoute: ClubsIdRoute,
+  StudentsIdRoute: StudentsIdRoute,
   TestIdRoute: TestIdRoute,
   ClubsIndexRoute: ClubsIndexRoute,
   StudentsIndexRoute: StudentsIndexRoute,

@@ -21,6 +21,9 @@ export function AppHeader() {
   const { resolvedTheme, setTheme } = useTheme();
   const { locale, setLocale, t } = useI18n();
   const [open, setOpen] = useState(false);
+  // Rol hali yuklanmaganda (null) rolga bog'liq havolalarni ko'rsatmaymiz —
+  // aks holda o'quvchi havolalari bir lahza "flash" qilib keyin yo'qoladi.
+  const roleKnown = role !== null;
   const isAdmin = role === "admin";
 
   async function signOut() {
@@ -35,17 +38,18 @@ export function AppHeader() {
   // Nav havolalari ro'yxati — rol bo'yicha
   const navLinks = [
     { to: "/dashboard" as const, icon: LayoutDashboard, label: t("nav_dashboard"), show: true },
-    // O'quvchi
-    { to: "/my-tests" as const, icon: ClipboardList, label: t("nav_tests"), show: !isAdmin },
-    { to: "/my-clubs" as const, icon: Trophy, label: t("nav_clubs"), show: !isAdmin },
-    { to: "/social-portfolio" as const, icon: Activity, label: t("nav_social"), show: !isAdmin },
-    { to: "/council" as const, icon: Landmark, label: t("nav_council"), show: !isAdmin },
-    { to: "/my-profile" as const, icon: UserIcon, label: t("nav_profile"), show: !isAdmin },
-    // Admin
-    { to: "/students" as const, icon: Users, label: t("nav_students"), show: isAdmin },
-    { to: "/clubs" as const, icon: Trophy, label: t("nav_clubs"), show: isAdmin },
-    { to: "/council" as const, icon: Landmark, label: t("nav_council"), show: isAdmin },
-    { to: "/analytics" as const, icon: TrendingUp, label: t("nav_analytics"), show: isAdmin },
+    // O'quvchi (faqat rol aniqlangach)
+    { to: "/my-tests" as const, icon: ClipboardList, label: t("nav_tests"), show: roleKnown && !isAdmin },
+    { to: "/my-clubs" as const, icon: Trophy, label: t("nav_clubs"), show: roleKnown && !isAdmin },
+    { to: "/social-portfolio" as const, icon: Activity, label: t("nav_social"), show: roleKnown && !isAdmin },
+    { to: "/council" as const, icon: Landmark, label: t("nav_council"), show: roleKnown && !isAdmin },
+    { to: "/my-profile" as const, icon: UserIcon, label: t("nav_profile"), show: roleKnown && !isAdmin },
+    // Admin (faqat rol aniqlangach)
+    { to: "/students" as const, icon: Users, label: t("nav_students"), show: roleKnown && isAdmin },
+    { to: "/tests-manage" as const, icon: ClipboardList, label: t("nav_tests"), show: roleKnown && isAdmin },
+    { to: "/clubs" as const, icon: Trophy, label: t("nav_clubs"), show: roleKnown && isAdmin },
+    { to: "/council" as const, icon: Landmark, label: t("nav_council"), show: roleKnown && isAdmin },
+    { to: "/analytics" as const, icon: TrendingUp, label: t("nav_analytics"), show: roleKnown && isAdmin },
   ].filter((l) => l.show);
 
   return (

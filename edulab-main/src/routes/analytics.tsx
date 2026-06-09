@@ -39,7 +39,8 @@ function Analytics() {
   const { data: students, isLoading: sLoading, isError: sError, refetch: sRefetch } = useQuery({
     queryKey: ["analytics-students"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, class_number").not("class_number", "is", null);
+      // student_directory — faqat 'student' rolli profillar (admin sana' ga kirmaydi)
+      const { data } = await supabase.from("student_directory").select("id, class_number").not("class_number", "is", null);
       return data ?? [];
     },
   });

@@ -114,20 +114,16 @@ function ClubDetailPage() {
   });
 
   // O'quvchilar ro'yxati (faqat maslahatchi/admin uchun, a'zo qo'shish)
-  // Faqat 'student' rolidagilarni olamiz (profiles hamma userlarni saqlaydi).
+  // student_directory view — faqat 'student' rolidagilar (bitta so'rov).
   const { data: allStudents } = useQuery({
     queryKey: ["students-for-clubs"],
     enabled: isAdmin,
     queryFn: async () => {
-      const [{ data: profilesData }, { data: roleRows }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, full_name, class_number, class_letter")
-          .order("full_name", { ascending: true }),
-        supabase.from("user_roles").select("user_id").eq("role", "student"),
-      ]);
-      const studentIds = new Set((roleRows ?? []).map((r) => r.user_id));
-      return (profilesData ?? []).filter((p) => studentIds.has(p.id));
+      const { data } = await supabase
+        .from("student_directory")
+        .select("id, full_name, class_number, class_letter")
+        .order("full_name", { ascending: true });
+      return data ?? [];
     },
   });
 
