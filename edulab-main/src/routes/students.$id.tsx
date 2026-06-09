@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AISummary } from "@/components/ai-summary";
 import { QueryError } from "@/components/query-error";
 import { PortfolioSkeleton } from "@/components/portfolio-skeleton";
+import { SocialPortfolio } from "@/components/social-portfolio";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -15,7 +16,7 @@ import {
 } from "recharts";
 import {
   ArrowLeft, Brain, Zap, Target, TrendingUp, Briefcase,
-  GraduationCap, FileText, User, School, Sparkles, CheckCircle2, Circle, Award,
+  GraduationCap, FileText, User, School, Sparkles, CheckCircle2, Circle, Award, Activity,
 } from "lucide-react";
 
 export const Route = createFileRoute("/students/$id")({
@@ -474,6 +475,14 @@ function StudentDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* ── 9. IJTIMOIY PORTFOLIO ──────────────────────────────── */}
+        <div className="mb-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-foreground">
+            <Activity className="h-5 w-5 text-primary" /> Ijtimoiy Portfolio
+          </h2>
+          <SocialPortfolio studentId={id} canEdit />
+        </div>
 
         {/* Bo'sh holat */}
         {radarData.length === 0 && !results?.length && (
