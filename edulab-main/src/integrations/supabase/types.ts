@@ -86,6 +86,78 @@ export type Database = {
         }
         Relationships: []
       }
+      clubs: {
+        Row: {
+          color: string
+          created_at: string
+          description: string
+          focus_area: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string
+          focus_area?: string
+          icon?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string
+          focus_area?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      club_members: {
+        Row: {
+          added_by: string | null
+          club_id: string
+          id: string
+          joined_at: string
+          notes: string | null
+          student_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          club_id: string
+          id?: string
+          joined_at?: string
+          notes?: string | null
+          student_id: string
+        }
+        Update: {
+          added_by?: string | null
+          club_id?: string
+          id?: string
+          joined_at?: string
+          notes?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_members_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_members_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           birth_date: string | null

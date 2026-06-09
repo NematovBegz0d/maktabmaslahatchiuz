@@ -130,7 +130,8 @@ function MyProfile() {
 
   // Mening klublarim
   const { data: myClubs } = useQuery({
-    queryKey: ["my-clubs", user?.id],
+    // Distinct key: my-clubs sahifasi ["my-clubs-detail", uid] dan foydalanadi
+    queryKey: ["my-clubs-profile", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data } = await supabase

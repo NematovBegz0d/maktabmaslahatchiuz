@@ -2,20 +2,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ProtectedRoute } from "@/components/protected-route";
 import { AppHeader } from "@/components/app-header";
-import { ClubBadge } from "@/components/club-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QueryError } from "@/components/query-error";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { CLUB_COLOR_MAP, type ClubColor } from "@/types/clubs";
+import { useI18n } from "@/lib/i18n";
 import {
-  Trophy,
-  ArrowRight,
-  Star,
-  BookOpen,
-  Sparkles,
-} from "lucide-react";
+  CLUB_COLOR_MAP,
+  type ClubColor,
+  type Club,
+  type MembershipWithClub,
+} from "@/types/clubs";
+import { Trophy, ArrowRight, Star, BookOpen, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/my-clubs")({
   head: () => ({ meta: [{ title: "Mening Klublarim — EduLens" }] }),
@@ -28,9 +28,16 @@ export const Route = createFileRoute("/my-clubs")({
 
 function MyClubsPage() {
   const { user } = useAuth();
+  const { t } = useI18n();
 
-  const { data: memberships, isLoading } = useQuery({
-    queryKey: ["my-clubs", user?.id],
+  const {
+    data: memberships,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    // Distinct key: my-profile sahifasi ["my-clubs-profile", uid] dan foydalanadi
+    queryKey: ["my-clubs-detail", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,7 +46,7 @@ function MyClubsPage() {
         .eq("student_id", user!.id)
         .order("joined_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as unknown as MembershipWithClub[];
     },
   });
 
@@ -51,13 +58,13 @@ function MyClubsPage() {
         .from("clubs")
         .select("*")
         .order("created_at", { ascending: true });
-      return data ?? [];
+      return (data ?? []) as Club[];
     },
   });
 
-  const myClubIds = new Set((memberships ?? []).map((m: any) => m.clubs?.id));
+  const myClubIds = new Set((memberships ?? []).map((m) => m.clubs?.id));
   const suggestedClubs = (allClubs ?? [])
-    .filter((c: any) => !myClubIds.has(c.id))
+    .filter((c) => !myClubIds.has(c.id))
     .slice(0, 3);
 
   return (
@@ -69,22 +76,22 @@ function MyClubsPage() {
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="flex items-center gap-2 text-3xl font-bold text-foreground">
-              <Star className="h-7 w-7 text-primary" /> Mening Klublarim
+              <Star className="h-7 w-7 text-primary" /> {t("clubs_my_title")}
             </h1>
-            <p className="mt-1.5 text-muted-foreground">
-              A'zo bo'lgan klublaringiz va faoliyat yo'nalishlaringiz.
-            </p>
+            <p className="mt-1.5 text-muted-foreground">{t("clubs_my_subtitle")}</p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to="/clubs">
-              <BookOpen className="mr-1.5 h-4 w-4" /> Barcha klublar
+              <BookOpen className="mr-1.5 h-4 w-4" /> {t("clubs_all")}
               <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>
 
         {/* ── Mening klublarim ── */}
-        {isLoading ? (
+        {isError ? (
+          <QueryError onRetry={() => refetch()} />
+        ) : isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i} className="border-border/60">
@@ -108,15 +115,14 @@ function MyClubsPage() {
             <CardContent className="flex flex-col items-center py-16 text-center">
               <Trophy className="mb-4 h-14 w-14 text-muted-foreground/30" />
               <h2 className="text-lg font-semibold text-foreground">
-                Hali hech bir klubga a'zo emassiz
+                {t("clubs_my_empty_title")}
               </h2>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                Maktab maslahatchiingiz sizni klubga qo'shadi. Quyidagi klublar bilan tanishib
-                chiqing va maslahatchingizga murojaat qiling.
+                {t("clubs_my_empty_desc")}
               </p>
               <Button asChild className="mt-6">
                 <Link to="/clubs">
-                  <BookOpen className="mr-1.5 h-4 w-4" /> Klublarni ko'rish
+                  <BookOpen className="mr-1.5 h-4 w-4" /> {t("clubs_view_all")}
                 </Link>
               </Button>
             </CardContent>
@@ -133,7 +139,7 @@ function MyClubsPage() {
 
             {/* Klublar grid */}
             <div className="mb-8 grid gap-4 sm:grid-cols-2">
-              {memberships.map((m: any) => {
+              {memberships.map((m) => {
                 const club = m.clubs;
                 if (!club) return null;
                 const colors =
@@ -209,10 +215,10 @@ function MyClubsPage() {
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
               <Sparkles className="h-5 w-5 text-secondary" />
-              Boshqa klublar
+              {t("clubs_other")}
             </h2>
             <div className="grid gap-3 sm:grid-cols-3">
-              {suggestedClubs.map((club: any) => {
+              {suggestedClubs.map((club) => {
                 const colors =
                   CLUB_COLOR_MAP[club.color as ClubColor] ?? CLUB_COLOR_MAP.blue;
                 return (
@@ -236,10 +242,10 @@ function MyClubsPage() {
                 );
               })}
             </div>
-            {(allClubs ?? []).filter((c: any) => !myClubIds.has(c.id)).length > 3 && (
+            {(allClubs ?? []).filter((c) => !myClubIds.has(c.id)).length > 3 && (
               <Button asChild variant="ghost" size="sm" className="mt-3 w-full">
                 <Link to="/clubs">
-                  Barcha klublarni ko'rish <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  {t("clubs_all")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
                 </Link>
               </Button>
             )}

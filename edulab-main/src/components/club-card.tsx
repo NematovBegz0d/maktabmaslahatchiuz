@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, ArrowRight, CheckCircle2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import { CLUB_COLOR_MAP, type Club, type ClubColor } from "@/types/clubs";
 
 interface ClubCardProps {
@@ -10,11 +11,26 @@ interface ClubCardProps {
   memberCount?: number;
   isMember?: boolean;
   role?: "counselor" | "admin" | "student" | "parent" | null;
+  /** Namuna (fallback) rejimida — detal sahifaga o'tib bo'lmaydi */
+  disabled?: boolean;
 }
 
-export function ClubCard({ club, memberCount, isMember, role }: ClubCardProps) {
+export function ClubCard({
+  club,
+  memberCount,
+  isMember,
+  role,
+  disabled,
+}: ClubCardProps) {
+  const { t } = useI18n();
   const colors = CLUB_COLOR_MAP[club.color as ClubColor] ?? CLUB_COLOR_MAP.blue;
   const isStaff = role === "counselor" || role === "admin";
+
+  const ctaLabel = isStaff
+    ? t("clubs_manage")
+    : isMember
+      ? t("clubs_details")
+      : t("clubs_view");
 
   return (
     <Card
@@ -37,7 +53,7 @@ export function ClubCard({ club, memberCount, isMember, role }: ClubCardProps) {
               <h3 className="font-semibold text-foreground leading-tight">{club.name}</h3>
               {isMember && (
                 <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
-                  <CheckCircle2 className="h-3 w-3" /> A'zo
+                  <CheckCircle2 className="h-3 w-3" /> {t("clubs_member")}
                 </span>
               )}
             </div>
@@ -59,29 +75,34 @@ export function ClubCard({ club, memberCount, isMember, role }: ClubCardProps) {
 
         {/* Fokus yo'nalishlari */}
         <div className="flex flex-wrap gap-1.5">
-          {club.focus_area.split(", ").map((tag) => (
-            <Badge
-              key={tag}
-              variant="secondary"
-              className={`text-xs ${colors.badge}`}
-            >
-              {tag}
-            </Badge>
-          ))}
+          {club.focus_area
+            .split(", ")
+            .filter(Boolean)
+            .map((tag) => (
+              <Badge key={tag} variant="secondary" className={`text-xs ${colors.badge}`}>
+                {tag}
+              </Badge>
+            ))}
         </div>
 
-        {/* Tugma */}
-        <Button
-          asChild
-          variant={isMember ? "outline" : "default"}
-          size="sm"
-          className="w-full"
-        >
-          <Link to="/clubs/$id" params={{ id: club.id }}>
-            {isStaff ? "Boshqarish" : isMember ? "Batafsil" : "Ko'rish"}
-            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-          </Link>
-        </Button>
+        {/* Tugma — fallback rejimida o'chirilgan */}
+        {disabled ? (
+          <Button variant="secondary" size="sm" className="w-full" disabled>
+            {ctaLabel}
+          </Button>
+        ) : (
+          <Button
+            asChild
+            variant={isMember ? "outline" : "default"}
+            size="sm"
+            className="w-full"
+          >
+            <Link to="/clubs/$id" params={{ id: club.id }}>
+              {ctaLabel}
+              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

@@ -26,14 +26,31 @@ export interface ClubMember {
   joined_at: string;
   added_by: string | null;
   notes: string | null;
-  // joined relations
-  club?: Club;
-  profile?: {
-    id: string;
-    full_name: string | null;
-    class_number: number | null;
-    class_letter: string | null;
-  };
+}
+
+/** Embedded student ma'lumoti (Supabase `profiles(...)` embed natijasi) */
+export interface ClubMemberProfile {
+  id: string;
+  full_name: string | null;
+  class_number: number | null;
+  class_letter: string | null;
+}
+
+/** Klub a'zosi + embed qilingan student profili (clubs.$id sahifasi) */
+export interface ClubMemberWithProfile {
+  id: string;
+  student_id: string;
+  joined_at: string;
+  notes: string | null;
+  profiles: ClubMemberProfile | null;
+}
+
+/** A'zolik + embed qilingan klub (my-clubs / my-profile sahifasi) */
+export interface MembershipWithClub {
+  id: string;
+  joined_at: string;
+  notes: string | null;
+  clubs: Club | null;
 }
 
 // ─── 7 ta statik klub ma'lumotlari ────────────────────────────────────────────
