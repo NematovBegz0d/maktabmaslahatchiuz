@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Baby, ClipboardCheck, User, TrendingUp, ChevronRight } from "lucide-react";
+import { Baby, ClipboardCheck, User, TrendingUp, ChevronRight, Trophy } from "lucide-react";
 import { QueryError } from "@/components/query-error";
+import { ClubBadge } from "@/components/club-badge";
+import type { ClubColor } from "@/types/clubs";
 
 export const Route = createFileRoute("/parent-dashboard")({
   head: () => ({ meta: [{ title: "Farzandlarim — EduLens" }] }),
@@ -79,6 +81,24 @@ function ParentDashboard() {
     },
   });
 
+  // Farzandlarning klub a'zoliklari
+  const { data: childClubs } = useQuery({
+    queryKey: ["parent-children-clubs", childIds],
+    enabled: childIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("club_members")
+        .select("student_id, joined_at, clubs(*)")
+        .in("student_id", childIds);
+      const map: Record<string, any[]> = {};
+      (data ?? []).forEach((m: any) => {
+        if (!map[m.student_id]) map[m.student_id] = [];
+        map[m.student_id]!.push(m);
+      });
+      return map;
+    },
+  });
+
   const loading = childrenLoading || resultsLoading;
 
   const resultsByChild = (testResults ?? []).reduce<Record<string, typeof testResults>>((acc, r: any) => {
@@ -131,6 +151,7 @@ function ParentDashboard() {
               const results = resultsByChild[child.id] ?? [];
               const completeness = sp?.profile_completeness ?? 0;
               const topCareer = sp?.top_careers?.[0];
+              const clubs = childClubs?.[child.id] ?? [];
 
               return (
                 <Card
@@ -225,6 +246,32 @@ function ParentDashboard() {
                               + {results.length - 3} ta boshqa natija
                             </p>
                           )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Klublar */}
+                    <div className="mt-4">
+                      <p className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        <Trophy className="h-3 w-3" /> Klublar
+                      </p>
+                      {clubs.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Hali hech bir klubga a'zo emas.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {clubs.map((m: any) => {
+                            const club = m.clubs;
+                            if (!club) return null;
+                            return (
+                              <ClubBadge
+                                key={m.student_id + club.id}
+                                name={club.name}
+                                icon={club.icon}
+                                color={club.color as ClubColor}
+                                size="sm"
+                              />
+                            );
+                          })}
                         </div>
                       )}
                     </div>
