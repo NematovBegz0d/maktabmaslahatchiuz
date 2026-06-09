@@ -18,6 +18,7 @@ import { Route as MyReportRouteImport } from './routes/my-report'
 import { Route as MyProfileRouteImport } from './routes/my-profile'
 import { Route as MyClubsRouteImport } from './routes/my-clubs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CouncilRouteImport } from './routes/council'
 import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -71,6 +72,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CouncilRoute = CouncilRouteImport.update({
+  id: '/council',
+  path: '/council',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClubsRoute = ClubsRouteImport.update({
   id: '/clubs',
   path: '/clubs',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/clubs': typeof ClubsRouteWithChildren
+  '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/clubs': typeof ClubsRouteWithChildren
+  '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
   '/clubs': typeof ClubsRouteWithChildren
+  '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
   '/my-profile': typeof MyProfileRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/clubs'
+    | '/council'
     | '/dashboard'
     | '/my-clubs'
     | '/my-profile'
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/clubs'
+    | '/council'
     | '/dashboard'
     | '/my-clubs'
     | '/my-profile'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/auth'
     | '/clubs'
+    | '/council'
     | '/dashboard'
     | '/my-clubs'
     | '/my-profile'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
   ClubsRoute: typeof ClubsRouteWithChildren
+  CouncilRoute: typeof CouncilRoute
   DashboardRoute: typeof DashboardRoute
   MyClubsRoute: typeof MyClubsRoute
   MyProfileRoute: typeof MyProfileRoute
@@ -308,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ClubsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/council': {
+      id: '/council'
+      path: '/council'
+      fullPath: '/council'
+      preLoaderRoute: typeof CouncilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
   ClubsRoute: ClubsRouteWithChildren,
+  CouncilRoute: CouncilRoute,
   DashboardRoute: DashboardRoute,
   MyClubsRoute: MyClubsRoute,
   MyProfileRoute: MyProfileRoute,

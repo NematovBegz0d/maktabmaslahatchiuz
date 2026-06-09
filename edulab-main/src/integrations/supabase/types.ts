@@ -158,6 +158,69 @@ export type Database = {
           },
         ]
       }
+      council_members: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          elected_at: string | null
+          id: string
+          notes: string | null
+          position: string
+          sector: string
+          student_id: string
+          term: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          elected_at?: string | null
+          id?: string
+          notes?: string | null
+          position?: string
+          sector?: string
+          student_id: string
+          term?: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          elected_at?: string | null
+          id?: string
+          notes?: string | null
+          position?: string
+          sector?: string
+          student_id?: string
+          term?: string
+        }
+        Relationships: []
+      }
+      council_activities: {
+        Row: {
+          activity_date: string | null
+          added_by: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          activity_date?: string | null
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          activity_date?: string | null
+          added_by?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       student_achievements: {
         Row: {
           achieved_at: string | null
