@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { ChevronLeft, ChevronRight, CheckCircle2, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // SVG content from DB — allowlist-style sanitizer: remove dangerous tags/attrs
@@ -37,9 +36,8 @@ interface OptionItem { value: number; label?: string; svg?: string }
 
 function TestRunner() {
   const { id } = Route.useParams();
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [finishing, setFinishing] = useState(false);
@@ -61,30 +59,72 @@ function TestRunner() {
     },
   });
 
-  // Create or fetch session
+  // Create or fetch session — supabase.auth.getUser() directly (ProtectedRoute already guards auth)
   useEffect(() => {
-    if (!user || !id) return;
+    if (!id) return;
+    let cancelled = false;
     (async () => {
-      const { data: existing } = await supabase
-        .from("test_sessions")
-        .select("id, status")
-        .eq("student_id", user.id)
-        .eq("test_id", id)
-        .neq("status", "completed")
-        .limit(1)
-        .maybeSingle();
-      if (existing) {
-        setSessionId(existing.id);
-        const { data: prev } = await supabase.from("answers").select("question_id, answer_value").eq("session_id", existing.id);
-        const map: Record<string, number> = {};
-        (prev ?? []).forEach((a) => { map[a.question_id] = (a.answer_value as { v: number })?.v ?? 0; });
-        setAnswers(map);
-      } else {
-        const { data: created } = await supabase.from("test_sessions").insert({ student_id: user.id, test_id: id, status: "in_progress" }).select("id").single();
-        if (created) setSessionId(created.id);
+      try {
+        const { data: { user }, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !user) {
+          if (!cancelled) setSessionError("Foydalanuvchi topilmadi. Qayta kiring.");
+          return;
+        }
+        if (cancelled) return;
+
+        const { data: existing, error: selectErr } = await supabase
+          .from("test_sessions")
+          .select("id, status")
+          .eq("student_id", user.id)
+          .eq("test_id", id)
+          .neq("status", "completed")
+          .limit(1)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (selectErr) {
+          console.error("[TestRunner] SELECT sessions error:", selectErr);
+          setSessionError(`Session olishda xatolik: ${selectErr.message}`);
+          return;
+        }
+
+        if (existing) {
+          setSessionId(existing.id);
+          const { data: prev } = await supabase
+            .from("answers")
+            .select("question_id, answer_value")
+            .eq("session_id", existing.id);
+          if (cancelled) return;
+          const map: Record<string, number> = {};
+          (prev ?? []).forEach((a) => { map[a.question_id] = (a.answer_value as { v: number })?.v ?? 0; });
+          setAnswers(map);
+        } else {
+          const { data: created, error: insertErr } = await supabase
+            .from("test_sessions")
+            .insert({ student_id: user.id, test_id: id, status: "in_progress" })
+            .select("id")
+            .single();
+
+          if (cancelled) return;
+
+          if (insertErr) {
+            console.error("[TestRunner] INSERT session error:", insertErr);
+            setSessionError(`Session yaratishda xatolik: ${insertErr.message}`);
+            return;
+          }
+
+          if (created) setSessionId(created.id);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.error("[TestRunner] session init error:", e);
+          setSessionError(`Kutilmagan xatolik: ${String(e)}`);
+        }
       }
     })();
-  }, [user, id]);
+    return () => { cancelled = true; };
+  }, [id]);
 
   const total = questions?.length ?? 0;
   const q = questions?.[idx];
@@ -134,11 +174,34 @@ function TestRunner() {
     );
   }
 
+  if (sessionError) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-2xl px-4 py-20 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mx-auto">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <h1 className="mt-4 text-xl font-bold text-foreground">Xatolik yuz berdi</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{sessionError}</p>
+          <button
+            onClick={() => { setSessionError(null); window.location.reload(); }}
+            className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Qayta urinish
+          </button>
+        </main>
+      </div>
+    );
+  }
+
   if (!test || !questions || !sessionId) {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
-        <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
       </div>
     );
   }

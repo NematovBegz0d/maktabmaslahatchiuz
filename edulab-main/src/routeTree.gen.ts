@@ -314,18 +314,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clubs': {
-      id: '/clubs'
-      path: '/clubs'
-      fullPath: '/clubs'
-      preLoaderRoute: typeof ClubsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/council': {
       id: '/council'
       path: '/council'
       fullPath: '/council'
       preLoaderRoute: typeof CouncilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clubs': {
+      id: '/clubs'
+      path: '/clubs'
+      fullPath: '/clubs'
+      preLoaderRoute: typeof ClubsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -373,6 +373,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ClubsRouteChildren {
+  ClubsIdRoute: typeof ClubsIdRoute
+}
+
+const ClubsRouteChildren: ClubsRouteChildren = {
+  ClubsIdRoute: ClubsIdRoute,
+}
+
+const ClubsRouteWithChildren = ClubsRoute._addFileChildren(ClubsRouteChildren)
+
 interface StudentsRouteChildren {
   StudentsIdRoute: typeof StudentsIdRoute
 }
@@ -384,16 +394,6 @@ const StudentsRouteChildren: StudentsRouteChildren = {
 const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
   StudentsRouteChildren,
 )
-
-interface ClubsRouteChildren {
-  ClubsIdRoute: typeof ClubsIdRoute
-}
-
-const ClubsRouteChildren: ClubsRouteChildren = {
-  ClubsIdRoute: ClubsIdRoute,
-}
-
-const ClubsRouteWithChildren = ClubsRoute._addFileChildren(ClubsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,

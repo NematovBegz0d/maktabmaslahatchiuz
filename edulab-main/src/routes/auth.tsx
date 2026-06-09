@@ -31,8 +31,8 @@ function AuthPage() {
   const { t } = useI18n();
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/dashboard" });
-  }, [user, loading, navigate]);
+    if (!loading && user) window.location.replace("/dashboard");
+  }, [user, loading]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
@@ -41,7 +41,10 @@ function AuthPage() {
           <Link to="/"><Logo /></Link>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 md:p-8" style={{ boxShadow: "var(--shadow-soft)" }}>
+        <div
+          className="rounded-2xl border border-border bg-card p-6 md:p-8"
+          style={{ boxShadow: "var(--shadow-soft)" }}
+        >
           <h1 className="mb-1 text-xl font-bold text-foreground">Tizimga kirish</h1>
           <p className="mb-6 text-sm text-muted-foreground">
             Maslahatchi yoki o'quvchi sifatida kiring
@@ -139,7 +142,8 @@ function LoginForm() {
     }
 
     toast.success(`${t("dashboard_welcome")}!`);
-    navigate({ to: "/dashboard" });
+    // TanStack Start SSR da navigate() ishlamaydi — hard redirect ishlatamiz
+    window.location.replace("/dashboard");
   }
 
   return (
