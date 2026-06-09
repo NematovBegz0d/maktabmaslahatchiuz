@@ -148,7 +148,7 @@ export function computeEngagement(args: {
   clubsCount: number;
   achievements: Pick<Achievement, "level">[];
   activeEnrollments: number;
-}): { score: number; level: string; color: string } {
+}): { score: number; level: string; levelKey: string; color: string } {
   const clubPoints = Math.min(args.clubsCount * 10, 30);
   const achievementPoints = Math.min(
     args.achievements.reduce((sum, a) => sum + (LEVEL_MAP[a.level]?.weight ?? 1) * 4, 0),
@@ -158,17 +158,21 @@ export function computeEngagement(args: {
   const score = Math.min(clubPoints + achievementPoints + enrollmentPoints, 100);
 
   let level = "Boshlang'ich";
+  let levelKey = "sp_level_basic";
   let color = "text-slate-500";
   if (score >= 80) {
     level = "Yuqori faol";
+    levelKey = "sp_level_high";
     color = "text-green-600 dark:text-green-400";
   } else if (score >= 50) {
     level = "Faol";
+    levelKey = "sp_level_active";
     color = "text-blue-600 dark:text-blue-400";
   } else if (score >= 25) {
     level = "O'rtacha";
+    levelKey = "sp_level_mid";
     color = "text-amber-600 dark:text-amber-400";
   }
 
-  return { score, level, color };
+  return { score, level, levelKey, color };
 }

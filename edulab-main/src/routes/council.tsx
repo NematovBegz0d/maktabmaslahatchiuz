@@ -13,6 +13,7 @@ import { AddCouncilMemberDialog } from "@/components/add-council-member-dialog";
 import { AddCouncilActivityDialog } from "@/components/add-council-activity-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import {
   POSITION_ORDER,
   POSITION_MAP,
@@ -40,6 +41,7 @@ function currentTerm(): string {
 
 function CouncilPage() {
   const { role } = useAuth();
+  const { t } = useI18n();
   const isAdmin = role === "admin";
   const queryClient = useQueryClient();
   const term = currentTerm();
@@ -111,10 +113,10 @@ function CouncilPage() {
     try {
       const { error } = await supabase.from("council_members").delete().eq("id", id);
       if (error) throw error;
-      toast.success("A'zo o'chirildi.");
+      toast.success(t("council_member_removed"));
       invalidateMembers();
     } catch {
-      toast.error("O'chirishda xatolik.");
+      toast.error(t("delete_error"));
     } finally {
       setDeletingId(null);
     }
@@ -126,10 +128,10 @@ function CouncilPage() {
     try {
       const { error } = await supabase.from("council_activities").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Faoliyat o'chirildi.");
+      toast.success(t("council_activity_removed"));
       invalidateActivities();
     } catch {
-      toast.error("O'chirishda xatolik.");
+      toast.error(t("delete_error"));
     } finally {
       setDeletingId(null);
     }
@@ -145,20 +147,20 @@ function CouncilPage() {
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="flex items-center gap-2 text-3xl font-bold text-foreground">
-              <Landmark className="h-7 w-7 text-primary" /> O'quvchilar Kengashi
+              <Landmark className="h-7 w-7 text-primary" /> {t("council_page_title")}
             </h1>
             <p className="mt-1.5 text-muted-foreground">
-              Yetakchilik, tashabbuskorlik va jamoaviy ishlash maydoni.{" "}
-              <span className="font-medium text-foreground">{term}</span> o'quv yili.
+              {t("council_subtitle")}{" "}
+              <span className="font-medium text-foreground">{term}</span> {t("council_year")}.
             </p>
           </div>
           {isAdmin && (
             <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => setAddActivityOpen(true)}>
-                <CalendarPlus className="mr-1.5 h-4 w-4" /> Faoliyat
+                <CalendarPlus className="mr-1.5 h-4 w-4" /> {t("council_add_activity")}
               </Button>
               <Button size="sm" onClick={() => setAddMemberOpen(true)}>
-                <UserPlus className="mr-1.5 h-4 w-4" /> A'zo qo'shish
+                <UserPlus className="mr-1.5 h-4 w-4" /> {t("council_add_member")}
               </Button>
             </div>
           )}
@@ -177,11 +179,9 @@ function CouncilPage() {
           <Card className="border-dashed border-border">
             <CardContent className="flex flex-col items-center py-16 text-center">
               <Landmark className="mb-4 h-14 w-14 text-muted-foreground/30" />
-              <h2 className="text-lg font-semibold text-foreground">Kengash hali shakllanmagan</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t("council_empty_title")}</h2>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                {isAdmin
-                  ? "\"A'zo qo'shish\" tugmasi orqali kengash a'zolarini saylang."
-                  : "Tez orada o'quvchilar kengashi a'zolari e'lon qilinadi."}
+                {isAdmin ? t("council_empty_admin") : t("council_empty_student")}
               </p>
             </CardContent>
           </Card>
@@ -217,7 +217,7 @@ function CouncilPage() {
         {/* ── Kengash faoliyati ── */}
         <div className="mt-10">
           <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-foreground">
-            <Users className="h-5 w-5 text-primary" /> Kengash faoliyati
+            <Users className="h-5 w-5 text-primary" /> {t("council_activities_title")}
           </h2>
 
           {actError ? (
@@ -231,9 +231,7 @@ function CouncilPage() {
           ) : (activities?.length ?? 0) === 0 ? (
             <Card className="border-dashed border-border">
               <CardContent className="py-10 text-center text-sm text-muted-foreground">
-                {isAdmin
-                  ? "Hali faoliyat qo'shilmagan. \"Faoliyat\" tugmasini bosing."
-                  : "Hali kengash faoliyati e'lon qilinmagan."}
+                {isAdmin ? t("council_act_empty_admin") : t("council_act_empty_student")}
               </CardContent>
             </Card>
           ) : (
