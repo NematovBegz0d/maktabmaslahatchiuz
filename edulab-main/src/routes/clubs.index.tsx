@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n";
 import { CLUBS_STATIC, type Club } from "@/types/clubs";
 import { Users, Trophy, Star, BookOpen } from "lucide-react";
 
-export const Route = createFileRoute("/clubs")({
+export const Route = createFileRoute("/clubs/")({
   head: () => ({ meta: [{ title: "Klublar — EduLens" }] }),
   component: () => (
     <ProtectedRoute>

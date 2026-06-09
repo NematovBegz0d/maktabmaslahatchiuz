@@ -15,7 +15,7 @@ import { useI18n } from "@/lib/i18n";
 
 const PAGE_SIZE = 10;
 
-export const Route = createFileRoute("/students")({
+export const Route = createFileRoute("/students/")({
   head: () => ({ meta: [{ title: "O'quvchilar — EduLens" }] }),
   component: () => (<ProtectedRoute requiredRoles={["admin"]}><StudentsList /></ProtectedRoute>),
 });

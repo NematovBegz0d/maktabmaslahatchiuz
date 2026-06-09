@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudentsManageRouteImport } from './routes/students-manage'
-import { Route as StudentsRouteImport } from './routes/students'
 import { Route as SocialPortfolioRouteImport } from './routes/social-portfolio'
 import { Route as MyTestsRouteImport } from './routes/my-tests'
 import { Route as MyResultsRouteImport } from './routes/my-results'
@@ -19,10 +18,11 @@ import { Route as MyProfileRouteImport } from './routes/my-profile'
 import { Route as MyClubsRouteImport } from './routes/my-clubs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CouncilRouteImport } from './routes/council'
-import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudentsIndexRouteImport } from './routes/students.index'
+import { Route as ClubsIndexRouteImport } from './routes/clubs.index'
 import { Route as TestIdRouteImport } from './routes/test.$id'
 import { Route as StudentsIdRouteImport } from './routes/students.$id'
 import { Route as ClubsIdRouteImport } from './routes/clubs.$id'
@@ -30,11 +30,6 @@ import { Route as ClubsIdRouteImport } from './routes/clubs.$id'
 const StudentsManageRoute = StudentsManageRouteImport.update({
   id: '/students-manage',
   path: '/students-manage',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StudentsRoute = StudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialPortfolioRoute = SocialPortfolioRouteImport.update({
@@ -77,11 +72,6 @@ const CouncilRoute = CouncilRouteImport.update({
   path: '/council',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClubsRoute = ClubsRouteImport.update({
-  id: '/clubs',
-  path: '/clubs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -95,6 +85,16 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudentsIndexRoute = StudentsIndexRouteImport.update({
+  id: '/students/',
+  path: '/students/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClubsIndexRoute = ClubsIndexRouteImport.update({
+  id: '/clubs/',
+  path: '/clubs/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestIdRoute = TestIdRouteImport.update({
@@ -117,7 +117,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
-  '/clubs': typeof ClubsRouteWithChildren
   '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
@@ -126,17 +125,17 @@ export interface FileRoutesByFullPath {
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
-  '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
+  '/clubs/': typeof ClubsIndexRoute
+  '/students/': typeof StudentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
-  '/clubs': typeof ClubsRouteWithChildren
   '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
@@ -145,18 +144,18 @@ export interface FileRoutesByTo {
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
-  '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
+  '/clubs': typeof ClubsIndexRoute
+  '/students': typeof StudentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRoute
-  '/clubs': typeof ClubsRouteWithChildren
   '/council': typeof CouncilRoute
   '/dashboard': typeof DashboardRoute
   '/my-clubs': typeof MyClubsRoute
@@ -165,11 +164,12 @@ export interface FileRoutesById {
   '/my-results': typeof MyResultsRoute
   '/my-tests': typeof MyTestsRoute
   '/social-portfolio': typeof SocialPortfolioRoute
-  '/students': typeof StudentsRouteWithChildren
   '/students-manage': typeof StudentsManageRoute
   '/clubs/$id': typeof ClubsIdRoute
   '/students/$id': typeof StudentsIdRoute
   '/test/$id': typeof TestIdRoute
+  '/clubs/': typeof ClubsIndexRoute
+  '/students/': typeof StudentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -177,7 +177,6 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/auth'
-    | '/clubs'
     | '/council'
     | '/dashboard'
     | '/my-clubs'
@@ -186,17 +185,17 @@ export interface FileRouteTypes {
     | '/my-results'
     | '/my-tests'
     | '/social-portfolio'
-    | '/students'
     | '/students-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
+    | '/clubs/'
+    | '/students/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/analytics'
     | '/auth'
-    | '/clubs'
     | '/council'
     | '/dashboard'
     | '/my-clubs'
@@ -205,17 +204,17 @@ export interface FileRouteTypes {
     | '/my-results'
     | '/my-tests'
     | '/social-portfolio'
-    | '/students'
     | '/students-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
+    | '/clubs'
+    | '/students'
   id:
     | '__root__'
     | '/'
     | '/analytics'
     | '/auth'
-    | '/clubs'
     | '/council'
     | '/dashboard'
     | '/my-clubs'
@@ -224,18 +223,18 @@ export interface FileRouteTypes {
     | '/my-results'
     | '/my-tests'
     | '/social-portfolio'
-    | '/students'
     | '/students-manage'
     | '/clubs/$id'
     | '/students/$id'
     | '/test/$id'
+    | '/clubs/'
+    | '/students/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRoute
-  ClubsRoute: typeof ClubsRouteWithChildren
   CouncilRoute: typeof CouncilRoute
   DashboardRoute: typeof DashboardRoute
   MyClubsRoute: typeof MyClubsRoute
@@ -244,9 +243,10 @@ export interface RootRouteChildren {
   MyResultsRoute: typeof MyResultsRoute
   MyTestsRoute: typeof MyTestsRoute
   SocialPortfolioRoute: typeof SocialPortfolioRoute
-  StudentsRoute: typeof StudentsRouteWithChildren
   StudentsManageRoute: typeof StudentsManageRoute
   TestIdRoute: typeof TestIdRoute
+  ClubsIndexRoute: typeof ClubsIndexRoute
+  StudentsIndexRoute: typeof StudentsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -256,13 +256,6 @@ declare module '@tanstack/react-router' {
       path: '/students-manage'
       fullPath: '/students-manage'
       preLoaderRoute: typeof StudentsManageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/students': {
-      id: '/students'
-      path: '/students'
-      fullPath: '/students'
-      preLoaderRoute: typeof StudentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/social-portfolio': {
@@ -321,13 +314,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CouncilRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/clubs': {
-      id: '/clubs'
-      path: '/clubs'
-      fullPath: '/clubs'
-      preLoaderRoute: typeof ClubsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -347,6 +333,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/students/': {
+      id: '/students/'
+      path: '/students'
+      fullPath: '/students/'
+      preLoaderRoute: typeof StudentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clubs/': {
+      id: '/clubs/'
+      path: '/clubs'
+      fullPath: '/clubs/'
+      preLoaderRoute: typeof ClubsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/test/$id': {
@@ -373,33 +373,10 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ClubsRouteChildren {
-  ClubsIdRoute: typeof ClubsIdRoute
-}
-
-const ClubsRouteChildren: ClubsRouteChildren = {
-  ClubsIdRoute: ClubsIdRoute,
-}
-
-const ClubsRouteWithChildren = ClubsRoute._addFileChildren(ClubsRouteChildren)
-
-interface StudentsRouteChildren {
-  StudentsIdRoute: typeof StudentsIdRoute
-}
-
-const StudentsRouteChildren: StudentsRouteChildren = {
-  StudentsIdRoute: StudentsIdRoute,
-}
-
-const StudentsRouteWithChildren = StudentsRoute._addFileChildren(
-  StudentsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRoute,
-  ClubsRoute: ClubsRouteWithChildren,
   CouncilRoute: CouncilRoute,
   DashboardRoute: DashboardRoute,
   MyClubsRoute: MyClubsRoute,
@@ -408,9 +385,10 @@ const rootRouteChildren: RootRouteChildren = {
   MyResultsRoute: MyResultsRoute,
   MyTestsRoute: MyTestsRoute,
   SocialPortfolioRoute: SocialPortfolioRoute,
-  StudentsRoute: StudentsRouteWithChildren,
   StudentsManageRoute: StudentsManageRoute,
   TestIdRoute: TestIdRoute,
+  ClubsIndexRoute: ClubsIndexRoute,
+  StudentsIndexRoute: StudentsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
