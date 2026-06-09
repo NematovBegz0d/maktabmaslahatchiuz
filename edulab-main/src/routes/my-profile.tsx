@@ -20,7 +20,7 @@ import {
 import {
   Sparkles, GraduationCap, Briefcase, Award, FileText, Brain,
   Heart, Zap, Target, BookOpen, CheckCircle2, Circle, TrendingUp,
-  User, School, Printer, Trophy,
+  User, School, Printer, Trophy, Activity,
 } from "lucide-react";
 import { ClubBadge } from "@/components/club-badge";
 import type { ClubColor } from "@/types/clubs";
@@ -606,6 +606,12 @@ function MyProfile() {
                 </p>
               </div>
             )}
+
+            <Button asChild variant="outline" size="sm" className="mt-4 w-full">
+              <Link to="/social-portfolio">
+                <Activity className="mr-1.5 h-4 w-4" /> To'liq Ijtimoiy Portfolio
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

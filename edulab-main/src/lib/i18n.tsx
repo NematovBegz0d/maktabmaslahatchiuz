@@ -11,6 +11,8 @@ const translations = {
     nav_students: "O'quvchilar",
     nav_analytics: "Tahlil",
     nav_clubs: "Klublar",
+    nav_social: "Ijtimoiy Portfolio",
+    nav_council: "O'quvchilar Kengashi",
     nav_signout: "Chiqish",
 
     // Auth
@@ -107,6 +109,8 @@ const translations = {
     nav_students: "Ученики",
     nav_analytics: "Аналитика",
     nav_clubs: "Клубы",
+    nav_social: "Соц. портфолио",
+    nav_council: "Совет учеников",
     nav_signout: "Выйти",
 
     // Auth
