@@ -7,10 +7,11 @@ export function Logo({ className = "" }: { className?: string }) {
         className="flex h-9 w-9 items-center justify-center rounded-xl text-primary-foreground"
         style={{ background: "var(--gradient-primary)" }}
       >
-        <Eye className="h-5 w-5" />
+        {/* logo */}
+
       </div>
       <span className="text-xl font-bold tracking-tight text-foreground">
-        EduLens
+        Maktab M
       </span>
     </div>
   );

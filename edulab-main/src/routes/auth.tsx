@@ -119,9 +119,6 @@ function LoginForm() {
       ? loginId.trim()
       : toStudentEmail(loginId);
 
-    console.log("[Auth] Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("[Auth] Attempting login for:", email);
-
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
 
@@ -135,8 +132,8 @@ function LoginForm() {
         setCountdown(LOCKOUT_SECONDS);
         toast.error(`${MAX_ATTEMPTS} marta xato. ${LOCKOUT_SECONDS} soniya kuting.`);
       } else {
-        // Aniq xato xabarini ko'rsatish (diagnostika uchun)
-        toast.error(`Xato: ${error.message}`, { duration: 8000 });
+        // Foydalanuvchiga umumiy xabar; texnik detal yuqorida console.error'da
+        toast.error("Login yoki parol noto'g'ri. Tekshirib qayta urining.");
       }
       return;
     }

@@ -51,6 +51,23 @@ function iqLabel(score: number) {
   return { text: "Rivojlantirilishi kerak", color: "text-red-500" };
 }
 
+interface RadarItem { skill: string; value: number }
+interface IqItem { type: string; score: number }
+interface DetailCareer {
+  id: string; name_uz: string; name?: string; description: string | null;
+  required_skills: string[]; salary_range: string | null;
+  universities?: { name: string; city?: string }[];
+}
+interface DetailResult {
+  id: string; test_id: string;
+  holland_code: string | null; personality_type: string | null;
+  raw_scores: Record<string, number> | null;
+  scaled_scores: Record<string, number> | null;
+  created_at: string;
+  tests: { name_uz: string | null; category?: string | null } | null;
+}
+interface DetailTest { id: string; name_uz: string | null }
+
 function StudentDetail() {
   const { id } = Route.useParams();
 
@@ -86,7 +103,7 @@ function StudentDetail() {
         .select("id, test_id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, category)")
         .eq("student_id", id)
         .order("created_at", { ascending: false });
-      return (data ?? []) as any[];
+      return (data ?? []) as DetailResult[];
     },
   });
 
@@ -94,24 +111,24 @@ function StudentDetail() {
     queryKey: ["all-tests"],
     queryFn: async () => {
       const { data } = await supabase.from("tests").select("id, name_uz").eq("is_active", true);
-      return data ?? [];
+      return (data ?? []) as DetailTest[];
     },
   });
 
-  const radarData = (sp?.radar_scores as any[]) ?? [];
-  const iqData = (sp?.iq_scores as any[]) ?? [];
-  const topCareers = (sp?.top_careers as any[]) ?? [];
+  const radarData = (sp?.radar_scores as RadarItem[] | null) ?? [];
+  const iqData = (sp?.iq_scores as IqItem[] | null) ?? [];
+  const topCareers = (sp?.top_careers as DetailCareer[] | null) ?? [];
   const completeness = sp?.profile_completeness ?? 0;
-  const hollandCode = results?.find((r: any) => r.holland_code)?.holland_code ?? null;
-  const temperament = results?.find((r: any) => r.personality_type)?.personality_type ?? null;
-  const completedTestIds = new Set((results ?? []).map((r: any) => r.test_id));
+  const hollandCode = results?.find((r) => r.holland_code)?.holland_code ?? null;
+  const temperament = results?.find((r) => r.personality_type)?.personality_type ?? null;
+  const completedTestIds = new Set((results ?? []).map((r) => r.test_id));
 
-  const sorted = [...radarData].sort((a: any, b: any) => b.value - a.value);
-  const strengths = sorted.slice(0, 3).filter((x: any) => x.value >= 50);
-  const improvements = sorted.slice(-3).filter((x: any) => x.value < 60);
+  const sorted = [...radarData].sort((a, b) => b.value - a.value);
+  const strengths = sorted.slice(0, 3).filter((x) => x.value >= 50);
+  const improvements = sorted.slice(-3).filter((x) => x.value < 60);
 
   const universities = Array.from(
-    new Map(topCareers.flatMap((c: any) => c.universities ?? []).map((u: any) => [u.name, u])).values()
+    new Map(topCareers.flatMap((c) => c.universities ?? []).map((u) => [u.name, u])).values()
   ).slice(0, 6) as { name: string; city?: string }[];
 
   if (isError) {
@@ -203,7 +220,7 @@ function StudentDetail() {
                 Bajarilgan testlar — {completedTestIds.size}/{allTests?.length ?? 8}
               </p>
               <div className="flex flex-wrap gap-2">
-                {(allTests ?? []).map((t: any) => (
+                {(allTests ?? []).map((t) => (
                   <span key={t.id} className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${completedTestIds.has(t.id) ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
                     {completedTestIds.has(t.id) ? <CheckCircle2 className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
                     {t.name_uz}
@@ -264,7 +281,7 @@ function StudentDetail() {
                     </div>
                   )}
                   <div className="space-y-1.5">
-                    {radarData.map((item: any, i: number) => (
+                    {radarData.map((item, i) => (
                       <div key={item.skill} className="flex items-center gap-2">
                         <span className="w-28 shrink-0 text-xs text-muted-foreground">{item.skill}</span>
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
@@ -285,8 +302,11 @@ function StudentDetail() {
           <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
             <CardContent className="p-6">
               <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
-                <Zap className="h-4 w-4 text-warning" /> Intellekt ko'rsatkichlari (IQ)
+                <Zap className="h-4 w-4 text-warning" /> Intellekt ko'rsatkichlari (taxminiy)
               </h3>
+              <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                ⚠️ Rasmiy IQ testi emas — faqat ichki taqqoslash uchun taxminiy nisbiy ball.
+              </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="h-52">
                   <ResponsiveContainer width="100%" height="100%">
@@ -299,7 +319,7 @@ function StudentDetail() {
                   </ResponsiveContainer>
                 </div>
                 <div className="flex flex-col justify-center gap-3">
-                  {iqData.map((item: any) => {
+                  {iqData.map((item) => {
                     const label = iqLabel(item.score);
                     return (
                       <div key={item.type} className="rounded-lg border border-border/50 p-3">
@@ -327,7 +347,7 @@ function StudentDetail() {
                     <TrendingUp className="h-4 w-4" /> Kuchli tomonlar
                   </h3>
                   <div className="space-y-2">
-                    {strengths.map((s: any) => (
+                    {strengths.map((s) => (
                       <div key={s.skill} className="flex items-center justify-between rounded-lg bg-background px-3 py-2">
                         <span className="text-sm font-medium text-foreground">{s.skill}</span>
                         <Badge className="bg-success/10 text-success hover:bg-success/20">{s.value}/100</Badge>
@@ -347,7 +367,7 @@ function StudentDetail() {
                     <Target className="h-4 w-4" /> Rivojlantirish sohalari
                   </h3>
                   <div className="space-y-2">
-                    {improvements.map((s: any) => (
+                    {improvements.map((s) => (
                       <div key={s.skill} className="flex items-center justify-between rounded-lg bg-background px-3 py-2">
                         <span className="text-sm font-medium text-foreground">{s.skill}</span>
                         <Badge variant="outline">{s.value}/100</Badge>
@@ -371,7 +391,7 @@ function StudentDetail() {
                 <FileText className="h-4 w-4 text-primary" /> Test natijalari
               </h3>
               <div className="space-y-3">
-                {results.map((r: any) => {
+                {results.map((r) => {
                   const scores = (r.scaled_scores ?? r.raw_scores) as Record<string, number> | null;
                   return (
                     <div key={r.id} className="rounded-xl border border-border/50 p-4">
@@ -417,7 +437,7 @@ function StudentDetail() {
                 <Briefcase className="h-4 w-4 text-primary" /> Mos kasblar
               </h3>
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {topCareers.slice(0, 6).map((c: any, i: number) => (
+                {topCareers.slice(0, 6).map((c, i) => (
                   <div key={i} className="rounded-xl border border-border/50 p-4">
                     <div className="flex items-start gap-2 mb-2">
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">#{i + 1}</span>

@@ -43,7 +43,13 @@ function iqLabel(score: number) {
 
 interface RadarItem { skill: string; value: number }
 interface IqItem { type: string; score: number }
-interface TopCareer { id: string; name_uz: string; description: string | null; required_skills: string[]; salary_range: string | null }
+interface TopCareer { id: string; name_uz: string; description: string | null; required_skills: string[]; salary_range: string | null; universities?: { name: string; city?: string }[] }
+interface ReportResult {
+  id: string; holland_code: string | null; personality_type: string | null;
+  raw_scores: Record<string, number> | null; scaled_scores: Record<string, number> | null;
+  created_at: string; tests: { name_uz: string | null } | null;
+}
+type SchoolRef = { name?: string; region?: string } | null;
 
 function MyReport() {
   const { user } = useAuth();
@@ -83,7 +89,7 @@ function MyReport() {
         .select("id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz)")
         .eq("student_id", user!.id)
         .order("created_at", { ascending: false });
-      return (data ?? []) as any[];
+      return (data ?? []) as ReportResult[];
     },
   });
 
@@ -92,14 +98,14 @@ function MyReport() {
   const topCareers = (sp?.top_careers as TopCareer[] | null) ?? [];
   const aiSummary = (sp?.ai_summary as string | null) ?? null;
   const completeness = sp?.profile_completeness ?? 0;
-  const hollandCode = results?.find((r: any) => r.holland_code)?.holland_code ?? null;
-  const temperament = results?.find((r: any) => r.personality_type)?.personality_type ?? null;
+  const hollandCode = results?.find((r) => r.holland_code)?.holland_code ?? null;
+  const temperament = results?.find((r) => r.personality_type)?.personality_type ?? null;
 
   const sorted = [...radarData].sort((a, b) => b.value - a.value);
   const strengths = sorted.slice(0, 3).filter((x) => x.value >= 50);
 
   const universities = Array.from(
-    new Map(topCareers.flatMap((c) => (c as any).universities ?? []).map((u: any) => [u.name, u])).values()
+    new Map(topCareers.flatMap((c) => c.universities ?? []).map((u) => [u.name, u])).values()
   ).slice(0, 4) as { name: string; city?: string }[];
 
   const today = new Date().toLocaleDateString("uz-UZ", { day: "2-digit", month: "long", year: "numeric" });
@@ -151,8 +157,8 @@ function MyReport() {
               <h1 className="text-xl font-bold text-slate-900">{profile?.full_name ?? "O'quvchi"}</h1>
               <p className="text-sm text-slate-500">
                 {profile?.class_number ? `${profile.class_number}-${profile.class_letter ?? ""} sinf` : ""}
-                {(profile?.schools as any)?.name ? ` • ${(profile!.schools as any).name}` : ""}
-                {(profile?.schools as any)?.region ? `, ${(profile!.schools as any).region}` : ""}
+                {(profile?.schools as SchoolRef)?.name ? ` • ${(profile!.schools as SchoolRef)!.name}` : ""}
+                {(profile?.schools as SchoolRef)?.region ? `, ${(profile!.schools as SchoolRef)!.region}` : ""}
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {hollandCode && hollandCode.split("").map((ch: string) => (
@@ -191,7 +197,8 @@ function MyReport() {
 
               {iqData.length > 0 && (
                 <div>
-                  <h3 className="mb-2 text-sm font-semibold text-slate-700">Intellekt (IQ)</h3>
+                  <h3 className="mb-1 text-sm font-semibold text-slate-700">Intellekt (taxminiy)</h3>
+                  <p className="mb-2 text-[10px] text-amber-600">Rasmiy IQ testi emas — taxminiy nisbiy ball.</p>
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={iqData}>
@@ -266,7 +273,7 @@ function MyReport() {
             <div className="mb-6">
               <h3 className="mb-3 text-sm font-semibold text-slate-700">Test natijalari</h3>
               <div className="space-y-2">
-                {results.map((r: any) => {
+                {results.map((r) => {
                   const scores = (r.scaled_scores ?? r.raw_scores) as Record<string, number> | null;
                   return (
                     <div key={r.id} className="rounded-lg border border-slate-200 p-3">

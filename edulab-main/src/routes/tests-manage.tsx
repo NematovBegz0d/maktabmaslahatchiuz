@@ -67,13 +67,16 @@ function TestsManage() {
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: ["manage-tests"] });
+    // O'quvchiga ko'rinadigan test ro'yxatlari ham yangilansin (5 daq staleTime)
+    qc.invalidateQueries({ queryKey: ["all-tests"] });
+    qc.invalidateQueries({ queryKey: ["tests-active"] });
   }
 
   async function toggleActive(t: TestRow) {
     setBusyId(t.id);
     const { error } = await supabase.from("tests").update({ is_active: !t.is_active }).eq("id", t.id);
     setBusyId(null);
-    if (error) { toast.error(`Xatolik: ${error.message}`); return; }
+    if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success(t.is_active ? "Test nofaol qilindi" : "Test faollashtirildi");
     invalidate();
   }
@@ -85,7 +88,7 @@ function TestsManage() {
     await supabase.from("questions").delete().eq("test_id", t.id);
     const { error } = await supabase.from("tests").delete().eq("id", t.id);
     setBusyId(null);
-    if (error) { toast.error(`Xatolik: ${error.message}`); return; }
+    if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success("Test o'chirildi");
     invalidate();
   }
@@ -197,7 +200,7 @@ function NewTestForm({ onDone }: { onDone: () => void }) {
       ...(duration ? { duration_minutes: parseInt(duration) } : {}),
     });
     setBusy(false);
-    if (error) { toast.error(`Xatolik: ${error.message}`); return; }
+    if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success(`"${name}" testi yaratildi. Endi savollar qo'shing.`);
     onDone();
   }
@@ -309,7 +312,7 @@ function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () =
     });
     if (!error) await syncCount((questions ?? []).length + 1);
     setBusy(false);
-    if (error) { toast.error(`Xatolik: ${error.message}`); return; }
+    if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success(`${nextNum}-savol qo'shildi`);
     setText(""); setSubscale("");
     refresh();
@@ -320,7 +323,7 @@ function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () =
     const { error } = await supabase.from("questions").delete().eq("id", id);
     if (!error) await syncCount(Math.max(0, (questions ?? []).length - 1));
     setDelId(null);
-    if (error) { toast.error(`Xatolik: ${error.message}`); return; }
+    if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success("Savol o'chirildi");
     refresh();
   }

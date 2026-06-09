@@ -102,7 +102,7 @@ function useSchools() {
     queryKey: ["schools"],
     queryFn: async () => {
       const { data } = await supabase.from("schools").select("id, name").order("name");
-      return data ?? [];
+      return (data ?? []) as { id: string; name: string }[];
     },
     staleTime: 1000 * 60 * 30,
   });
@@ -262,7 +262,7 @@ function SingleStudentForm() {
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="">Tanlanmagan</option>
-                  {schools.map((s: any) => (
+                  {schools.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>

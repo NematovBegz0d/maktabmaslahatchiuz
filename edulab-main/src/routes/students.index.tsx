@@ -15,6 +15,15 @@ import { useI18n } from "@/lib/i18n";
 
 const PAGE_SIZE = 10;
 
+interface StudentRow {
+  id: string;
+  full_name: string | null;
+  class_number: number | null;
+  class_letter: string | null;
+  school_id: string | null;
+  school_name: string | null;
+}
+
 export const Route = createFileRoute("/students/")({
   head: () => ({ meta: [{ title: "O'quvchilar — EduLens" }] }),
   component: () => (<ProtectedRoute requiredRoles={["admin"]}><StudentsList /></ProtectedRoute>),
@@ -33,11 +42,11 @@ function StudentsList() {
         .from("student_directory")
         .select("id, full_name, class_number, class_letter, school_id, school_name")
         .order("full_name", { ascending: true });
-      return data ?? [];
+      return (data ?? []) as StudentRow[];
     },
   });
 
-  const filtered = (data ?? []).filter((s: any) =>
+  const filtered = (data ?? []).filter((s) =>
     !q || (s.full_name ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
@@ -103,7 +112,7 @@ function StudentsList() {
               Jami: <span className="font-medium text-foreground">{filtered.length}</span> ta o'quvchi
             </div>
             <div className="grid gap-3">
-              {paginated.map((s: any) => (
+              {paginated.map((s) => (
                 <Link
                   key={s.id}
                   to="/students/$id"

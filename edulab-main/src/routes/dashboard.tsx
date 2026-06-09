@@ -21,6 +21,31 @@ export const Route = createFileRoute("/dashboard")({
   component: () => (<ProtectedRoute><Dashboard /></ProtectedRoute>),
 });
 
+interface SessionWithTest {
+  id: string;
+  status: string;
+  test_id: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  student_id?: string;
+  tests: { name_uz: string | null; description?: string | null } | null;
+}
+interface DashTest {
+  id: string;
+  name_uz: string | null;
+  description?: string | null;
+  duration_minutes?: number | null;
+  question_count?: number | null;
+}
+interface AdminStudent {
+  id: string;
+  full_name: string | null;
+  class_number: number | null;
+  class_letter: string | null;
+  created_at: string | null;
+}
+interface CareerLite { id?: string; name_uz?: string; name?: string }
+
 function Dashboard() {
   const { role, loading } = useAuth();
 
@@ -58,7 +83,7 @@ function StudentDashboard() {
         .select("id, status, test_id, tests(name_uz, description)")
         .eq("student_id", user!.id)
         .order("started_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as SessionWithTest[];
     },
   });
 
@@ -66,7 +91,7 @@ function StudentDashboard() {
     queryKey: ["tests-active"],
     queryFn: async () => {
       const { data } = await supabase.from("tests").select("*").eq("is_active", true).order("id");
-      return data ?? [];
+      return (data ?? []) as DashTest[];
     },
   });
 
@@ -93,7 +118,7 @@ function StudentDashboard() {
   const remainingCount = Math.max(0, totalTests - completedCount);
   const completeness = sp?.profile_completeness
     ?? (totalTests > 0 ? Math.min(100, Math.round((completedCount / totalTests) * 100)) : 0);
-  const topCareer = (sp?.top_careers as any[] | null)?.[0];
+  const topCareer = (sp?.top_careers as CareerLite[] | null)?.[0];
 
   // Bajarilmagan testlar
   const remainingTests = (tests ?? []).filter((t) => !completedIds.has(t.id)).slice(0, 3);
@@ -153,7 +178,7 @@ function StudentDashboard() {
               <ClipboardList className="h-5 w-5 text-warning" /> Tugallanmagan testlar
             </h2>
             <div className="grid gap-3">
-              {inProgressSessions.map((s: any) => (
+              {inProgressSessions.map((s) => (
                 <Card key={s.id} className="border-warning/30 bg-warning/5">
                   <CardContent className="flex items-center justify-between p-4">
                     <p className="font-medium text-foreground">{s.tests?.name_uz ?? "Test"}</p>
@@ -179,7 +204,7 @@ function StudentDashboard() {
               </Button>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
-              {remainingTests.map((t: any) => (
+              {remainingTests.map((t) => (
                 <Card key={t.id} className="border-border/60 transition hover:border-primary/40" style={{ boxShadow: "var(--shadow-card)" }}>
                   <CardContent className="p-5">
                     <p className="font-semibold text-foreground">{t.name_uz}</p>
@@ -230,7 +255,7 @@ function AdminDashboard() {
         .from("student_directory")
         .select("id, full_name, class_number, class_letter, created_at")
         .order("created_at", { ascending: false });
-      return data ?? [];
+      return (data ?? []) as AdminStudent[];
     },
   });
 
@@ -242,7 +267,7 @@ function AdminDashboard() {
         .select("id, student_id, status, started_at, completed_at, tests(name_uz)")
         .order("started_at", { ascending: false })
         .limit(8);
-      return data ?? [];
+      return (data ?? []) as SessionWithTest[];
     },
   });
 
@@ -273,7 +298,7 @@ function AdminDashboard() {
 
   // O'quvchilar sinf bo'yicha guruhlash
   const classCounts: Record<string, number> = {};
-  (students ?? []).forEach((s: any) => {
+  (students ?? []).forEach((s) => {
     const key = s.class_number ? `${s.class_number}${s.class_letter ?? ""}` : "Belgilanmagan";
     classCounts[key] = (classCounts[key] ?? 0) + 1;
   });
@@ -284,7 +309,7 @@ function AdminDashboard() {
   // Diqqat talab qiladigan o'quvchilar (portfolio 0%)
   const completenessMap = Object.fromEntries((spData ?? []).map((p) => [p.student_id, p.profile_completeness ?? 0]));
   const needsAttention = (students ?? [])
-    .filter((s: any) => (completenessMap[s.id] ?? 0) === 0)
+    .filter((s) => (completenessMap[s.id] ?? 0) === 0)
     .slice(0, 5);
 
   // So'nggi faollik
@@ -375,7 +400,7 @@ function AdminDashboard() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {needsAttention.map((s: any) => (
+                  {needsAttention.map((s) => (
                     <Link
                       key={s.id}
                       to="/students/$id"
@@ -408,12 +433,12 @@ function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Hozircha faollik yo'q</p>
               ) : (
                 <div className="space-y-3">
-                  {recentActivity.map((s: any) => (
+                  {recentActivity.map((s) => (
                     <div key={s.id} className="flex items-start gap-2">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
                       <div className="min-w-0">
                         <p className="truncate text-xs font-medium text-foreground">
-                          {(s as any).tests?.name_uz ?? "Test"}
+                          {s.tests?.name_uz ?? "Test"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {s.completed_at ? new Date(s.completed_at).toLocaleDateString("uz") : "—"}

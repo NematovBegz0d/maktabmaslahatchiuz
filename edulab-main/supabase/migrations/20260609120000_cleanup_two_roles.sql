@@ -30,6 +30,7 @@ UPDATE public.user_roles SET role = 'student' WHERE role = 'parent';
 
 -- ─── 3. club_members: izohni tahrirlash uchun UPDATE huquqi ───────────────────
 GRANT UPDATE ON public.club_members TO authenticated;
+DROP POLICY IF EXISTS "Admins update memberships" ON public.club_members;
 CREATE POLICY "Admins update memberships" ON public.club_members
   FOR UPDATE TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));

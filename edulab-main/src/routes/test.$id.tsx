@@ -85,7 +85,7 @@ function TestRunner() {
 
         if (selectErr) {
           console.error("[TestRunner] SELECT sessions error:", selectErr);
-          setSessionError(`Session olishda xatolik: ${selectErr.message}`);
+          setSessionError("Testni yuklashda xatolik yuz berdi. Qayta urinib ko'ring.");
           return;
         }
 
@@ -110,7 +110,7 @@ function TestRunner() {
 
           if (insertErr) {
             console.error("[TestRunner] INSERT session error:", insertErr);
-            setSessionError(`Session yaratishda xatolik: ${insertErr.message}`);
+            setSessionError("Testni boshlashda xatolik yuz berdi. Qayta urinib ko'ring.");
             return;
           }
 
@@ -119,7 +119,7 @@ function TestRunner() {
       } catch (e) {
         if (!cancelled) {
           console.error("[TestRunner] session init error:", e);
-          setSessionError(`Kutilmagan xatolik: ${String(e)}`);
+          setSessionError("Kutilmagan xatolik yuz berdi. Qayta urinib ko'ring.");
         }
       }
     })();

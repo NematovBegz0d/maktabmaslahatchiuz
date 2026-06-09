@@ -12,4 +12,15 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    esbuild: {
+      // Production build'da console.log/debug/info ni olib tashlash (Q-2).
+      // console.error/warn qoladi — production'da xato kuzatuvi uchun.
+      // Dev'da hammasi saqlanadi.
+      pure:
+        process.env.NODE_ENV === "production"
+          ? ["console.log", "console.debug", "console.info"]
+          : [],
+    },
+  },
 });

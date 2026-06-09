@@ -83,6 +83,20 @@ interface TopCareer {
   required_skills: string[]; salary_range: string | null;
   universities?: { name: string; city?: string }[];
 }
+interface ResultRow {
+  id: string; test_id: string;
+  holland_code: string | null; personality_type: string | null;
+  raw_scores: Record<string, number> | null;
+  scaled_scores: Record<string, number> | null;
+  created_at: string;
+  tests: { name_uz: string | null; category?: string | null; test_type?: string | null } | null;
+}
+interface ClubMembership {
+  id: string; joined_at: string;
+  clubs: { id: string; name: string; icon: string; color: string } | null;
+}
+interface AllTest { id: string; name_uz: string | null; category?: string | null }
+type SchoolRef = { name?: string; region?: string } | null;
 
 function MyProfile() {
   const { user } = useAuth();
@@ -124,7 +138,7 @@ function MyProfile() {
         .select("id, test_id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, category, test_type)")
         .eq("student_id", user!.id)
         .order("created_at", { ascending: false });
-      return (data ?? []) as any[];
+      return (data ?? []) as ResultRow[];
     },
   });
 
@@ -139,7 +153,7 @@ function MyProfile() {
         .select("id, joined_at, clubs(*)")
         .eq("student_id", user!.id)
         .order("joined_at", { ascending: false });
-      return (data ?? []) as any[];
+      return (data ?? []) as ClubMembership[];
     },
   });
 
@@ -147,7 +161,7 @@ function MyProfile() {
     queryKey: ["all-tests"],
     queryFn: async () => {
       const { data } = await supabase.from("tests").select("id, name_uz, category").eq("is_active", true);
-      return data ?? [];
+      return (data ?? []) as AllTest[];
     },
   });
 
@@ -158,10 +172,10 @@ function MyProfile() {
   const iqData = (sp?.iq_scores as IqItem[] | null) ?? [];
   const topCareers = (sp?.top_careers as TopCareer[] | null) ?? [];
   const completeness = sp?.profile_completeness ?? 0;
-  const hollandCode = results?.find((r: any) => r.holland_code)?.holland_code ?? null;
-  const temperament = results?.find((r: any) => r.personality_type)?.personality_type ?? null;
+  const hollandCode = results?.find((r) => r.holland_code)?.holland_code ?? null;
+  const temperament = results?.find((r) => r.personality_type)?.personality_type ?? null;
   const aiSummary = sp?.ai_summary ?? null;
-  const completedTestIds = new Set((results ?? []).map((r: any) => r.test_id));
+  const completedTestIds = new Set((results ?? []).map((r) => r.test_id));
   const totalTests = allTests?.length ?? 8;
   const completedCount = completedTestIds.size;
 
@@ -228,7 +242,7 @@ function MyProfile() {
                     <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                       <School className="h-3.5 w-3.5" />
                       {profile?.class_number ? `${profile.class_number}-${profile.class_letter ?? ""} sinf` : "Sinf kiritilmagan"}
-                      {(profile?.schools as any)?.name ? ` • ${(profile!.schools as any).name}` : ""}
+                      {(profile?.schools as SchoolRef)?.name ? ` • ${(profile!.schools as SchoolRef)!.name}` : ""}
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {hollandCode && hollandCode.split("").map((ch: string) => (
@@ -271,7 +285,7 @@ function MyProfile() {
                   Testlar bajarilishi — {completedCount}/{totalTests}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {(allTests ?? []).map((t: any) => (
+                  {(allTests ?? []).map((t) => (
                     <span
                       key={t.id}
                       className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
@@ -378,9 +392,11 @@ function MyProfile() {
           <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
             <CardContent className="p-6">
               <h3 className="mb-1 font-semibold text-foreground flex items-center gap-2">
-                <Zap className="h-4 w-4 text-warning" /> Intellekt ko'rsatkichlari (IQ)
+                <Zap className="h-4 w-4 text-warning" /> Intellekt ko'rsatkichlari (taxminiy)
               </h3>
-              <p className="mb-4 text-xs text-muted-foreground">O'rtacha me'yor: 85–115</p>
+              <p className="mb-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+                ⚠️ Bu <strong>rasmiy IQ testi emas</strong>. Natija faqat ichki taqqoslash uchun taxminiy nisbiy ball — yosh normalari va klinik validatsiyaga asoslanmagan.
+              </p>
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="h-56">
                   <ResponsiveContainer width="100%" height="100%">
@@ -465,7 +481,7 @@ function MyProfile() {
                 <FileText className="h-4 w-4 text-primary" /> Test natijalari
               </h3>
               <div className="space-y-3">
-                {results.map((r: any) => {
+                {results.map((r) => {
                   const raw = r.raw_scores as Record<string, number> | null;
                   const scaled = r.scaled_scores as Record<string, number> | null;
                   const scores = scaled ?? raw;
@@ -582,7 +598,7 @@ function MyProfile() {
             </h3>
             {myClubs && myClubs.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2">
-                {myClubs.map((m: any) => {
+                {myClubs.map((m) => {
                   const club = m.clubs;
                   if (!club) return null;
                   return (

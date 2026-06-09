@@ -102,7 +102,7 @@ export function AddCouncilMemberDialog({
       if (err.code === "23505") toast.error("Bu o'quvchi shu o'quv yilida allaqachon kengash a'zosi.");
       else if (err.code === "42501" || err.code === "PGRST301")
         toast.error("Sizda bu amalni bajarish uchun ruxsat yo'q.");
-      else toast.error(err.message ?? "Xatolik yuz berdi.");
+      else { console.error("[add-council-member]", err); toast.error("Xatolik yuz berdi. Qayta urinib ko'ring."); }
     } finally {
       setSaving(false);
     }

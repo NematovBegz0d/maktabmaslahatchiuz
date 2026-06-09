@@ -52,7 +52,7 @@ export function AddCouncilActivityDialog({ open, onOpenChange, onAdded }: Props)
       const err = e as { code?: string; message?: string };
       if (err.code === "42501" || err.code === "PGRST301")
         toast.error("Sizda bu amalni bajarish uchun ruxsat yo'q.");
-      else toast.error(err.message ?? "Xatolik yuz berdi.");
+      else { console.error("[add-council-activity]", err); toast.error("Xatolik yuz berdi. Qayta urinib ko'ring."); }
     } finally {
       setSaving(false);
     }
