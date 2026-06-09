@@ -20,8 +20,10 @@ import {
 import {
   Sparkles, GraduationCap, Briefcase, Award, FileText, Brain,
   Heart, Zap, Target, BookOpen, CheckCircle2, Circle, TrendingUp,
-  User, School, Printer,
+  User, School, Printer, Trophy,
 } from "lucide-react";
+import { ClubBadge } from "@/components/club-badge";
+import type { ClubColor } from "@/types/clubs";
 
 export const Route = createFileRoute("/my-profile")({
   head: () => ({ meta: [{ title: "Mening portfoliom — EduLens" }] }),
@@ -122,6 +124,21 @@ function MyProfile() {
         .select("id, test_id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, category, test_type)")
         .eq("student_id", user!.id)
         .order("created_at", { ascending: false });
+      return (data ?? []) as any[];
+    },
+  });
+
+  // Mening klublarim
+  const { data: myClubs } = useQuery({
+    // Distinct key: my-clubs sahifasi ["my-clubs-detail", uid] dan foydalanadi
+    queryKey: ["my-clubs-profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("club_members")
+        .select("id, joined_at, clubs(*)")
+        .eq("student_id", user!.id)
+        .order("joined_at", { ascending: false });
       return (data ?? []) as any[];
     },
   });
@@ -557,7 +574,42 @@ function MyProfile() {
           </Card>
         )}
 
-        {/* ── 8. AI XULOSA ────────────────────────────────────────── */}
+        {/* ── 8. KLUBLARIM ────────────────────────────────────────── */}
+        <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
+          <CardContent className="p-6">
+            <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-primary" /> Mening Klublarim
+            </h3>
+            {myClubs && myClubs.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {myClubs.map((m: any) => {
+                  const club = m.clubs;
+                  if (!club) return null;
+                  return (
+                    <ClubBadge
+                      key={m.id}
+                      name={club.name}
+                      icon={club.icon}
+                      color={club.color as ClubColor}
+                      joinedAt={m.joined_at}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border py-8 text-center">
+                <Trophy className="mx-auto mb-2 h-8 w-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">
+                  Hali hech bir klubga a'zo emassiz.
+                  <br />
+                  Maslahatchi sizni clubga qo'shgandan so'ng bu yerda ko'rinadi.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── 9. AI XULOSA ────────────────────────────────────────── */}
         <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
           <CardContent className="p-6">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

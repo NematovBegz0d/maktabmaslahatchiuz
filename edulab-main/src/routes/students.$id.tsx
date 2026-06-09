@@ -20,7 +20,7 @@ import {
 
 export const Route = createFileRoute("/students/$id")({
   head: () => ({ meta: [{ title: "O'quvchi portfoliosi — EduLens" }] }),
-  component: () => (<ProtectedRoute requiredRoles={["counselor", "admin"]}><StudentDetail /></ProtectedRoute>),
+  component: () => (<ProtectedRoute requiredRoles={["admin"]}><StudentDetail /></ProtectedRoute>),
 });
 
 // ─── Holland kodi ta'riflari ───────────────────────────────────────────────

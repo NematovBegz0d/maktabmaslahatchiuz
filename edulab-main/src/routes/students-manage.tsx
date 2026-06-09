@@ -18,7 +18,7 @@ import {
 export const Route = createFileRoute("/students-manage")({
   head: () => ({ meta: [{ title: "O'quvchi qo'shish — EduLens" }] }),
   component: () => (
-    <ProtectedRoute requiredRoles={["counselor", "admin"]}>
+    <ProtectedRoute requiredRoles={["admin"]}>
       <StudentsManagePage />
     </ProtectedRoute>
   ),

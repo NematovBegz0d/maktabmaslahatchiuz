@@ -15,7 +15,7 @@ import { QueryError } from "@/components/query-error";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({ meta: [{ title: "Tahlil — EduLens" }] }),
-  component: () => (<ProtectedRoute requiredRoles={["counselor", "admin"]}><Analytics /></ProtectedRoute>),
+  component: () => (<ProtectedRoute requiredRoles={["admin"]}><Analytics /></ProtectedRoute>),
 });
 
 const HOLLAND_NAMES: Record<string, string> = {
