@@ -47,7 +47,7 @@ interface TopCareer { id: string; name_uz: string; description: string | null; r
 interface ReportResult {
   id: string; holland_code: string | null; personality_type: string | null;
   raw_scores: Record<string, number> | null; scaled_scores: Record<string, number> | null;
-  created_at: string; tests: { name_uz: string | null } | null;
+  created_at: string; tests: { name_uz: string | null; test_type?: string | null } | null;
 }
 type SchoolRef = { name?: string; region?: string } | null;
 
@@ -100,6 +100,20 @@ function MyReport() {
   const completeness = sp?.profile_completeness ?? 0;
   const hollandCode = results?.find((r) => r.holland_code)?.holland_code ?? null;
   const temperament = results?.find((r) => r.personality_type)?.personality_type ?? null;
+
+  // Fan testlari (subject)
+  const subjectResults = (results ?? [])
+    .filter((r) => r.tests?.test_type === "subject")
+    .map((r) => {
+      const ss = r.scaled_scores ?? {};
+      return {
+        name: r.tests?.name_uz ?? "Fan",
+        percent: ss.percent ?? 0,
+        grade: ss.grade ?? 0,
+        correct: ss.correct ?? 0,
+        total: ss.total ?? 0,
+      };
+    });
 
   const sorted = [...radarData].sort((a, b) => b.value - a.value);
   const strengths = sorted.slice(0, 3).filter((x) => x.value >= 50);
@@ -217,6 +231,23 @@ function MyReport() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ── FAN BILIMLARI (subject testlar) ── */}
+          {subjectResults.length > 0 && (
+            <div className="mb-6 rounded-xl border border-slate-200 p-5">
+              <h3 className="mb-3 text-sm font-semibold text-slate-700">Fan bilimlari</h3>
+              <div className="space-y-1.5">
+                {subjectResults.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-700">{s.name}</span>
+                    <span className="text-slate-500">
+                      {s.correct}/{s.total} • {s.percent}% — baho: <span className="font-bold text-slate-700">{s.grade}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

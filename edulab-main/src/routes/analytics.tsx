@@ -10,7 +10,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
   PieChart, Pie, Legend,
 } from "recharts";
-import { Users, ClipboardCheck, Sparkles, TrendingUp, Briefcase } from "lucide-react";
+import { Users, ClipboardCheck, Sparkles, TrendingUp, Briefcase, BookOpenCheck } from "lucide-react";
 import { QueryError } from "@/components/query-error";
 
 export const Route = createFileRoute("/analytics")({
@@ -34,6 +34,11 @@ interface SpRow {
   profile_completeness: number | null;
   top_careers: { name_uz?: string; name?: string }[] | null;
 }
+interface SubjectRow {
+  scaled_scores: Record<string, number> | null;
+  tests: { name_uz: string | null; test_type: string | null } | null;
+}
+const GRADE_BAR = ["#ef4444", "#f59e0b", "#3b82f6", "#10b981"]; // 2,3,4,5 ranglari
 
 function Analytics() {
   const { data: students, isLoading: sLoading, isError: sError, refetch: sRefetch } = useQuery({
@@ -60,6 +65,16 @@ function Analytics() {
     queryFn: async () => {
       const { data } = await supabase.from("student_profiles").select("profile_completeness, top_careers");
       return (data ?? []) as SpRow[];
+    },
+  });
+
+  const { data: subjectRows } = useQuery({
+    queryKey: ["analytics-subjects"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("test_results")
+        .select("scaled_scores, tests(name_uz, test_type)");
+      return ((data ?? []) as unknown as SubjectRow[]).filter((r) => r.tests?.test_type === "subject");
     },
   });
 
@@ -113,6 +128,26 @@ function Analytics() {
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
+
+  // --- Fan testlari statistikasi ---
+  const subjAgg: Record<string, { sumP: number; sumG: number; n: number; g: Record<number, number> }> = {};
+  (subjectRows ?? []).forEach((r) => {
+    const name = r.tests?.name_uz ?? "Fan";
+    const ss = r.scaled_scores ?? {};
+    if (!subjAgg[name]) subjAgg[name] = { sumP: 0, sumG: 0, n: 0, g: { 2: 0, 3: 0, 4: 0, 5: 0 } };
+    subjAgg[name].sumP += ss.percent ?? 0;
+    subjAgg[name].sumG += ss.grade ?? 0;
+    subjAgg[name].n += 1;
+    const gr = ss.grade ?? 2;
+    if (gr >= 2 && gr <= 5) subjAgg[name].g[gr] = (subjAgg[name].g[gr] ?? 0) + 1;
+  });
+  const subjectStats = Object.entries(subjAgg).map(([name, v]) => ({
+    name,
+    avgPercent: Math.round(v.sumP / v.n),
+    avgGrade: Math.round((v.sumG / v.n) * 10) / 10,
+    count: v.n,
+    grades: v.g,
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,6 +245,42 @@ function Analytics() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Fan testlari natijalari */}
+            {subjectStats.length > 0 && (
+              <Card className="mt-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
+                <CardContent className="p-6">
+                  <h3 className="mb-4 flex items-center gap-2 font-semibold text-foreground">
+                    <BookOpenCheck className="h-4 w-4 text-primary" /> Fan testlari natijalari
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {subjectStats.map((s) => (
+                      <div key={s.name} className="rounded-xl border border-border/50 p-4">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-foreground">{s.name}</span>
+                          <span className="text-2xl font-bold text-primary">{s.avgGrade}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Oʻrtacha baho • {s.count} ta natija</p>
+                        <div className="mt-2 flex items-center justify-between text-xs">
+                          <span className="text-muted-foreground">Oʻrtacha foiz</span>
+                          <span className="font-semibold text-foreground">{s.avgPercent}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${s.avgPercent}%` }} />
+                        </div>
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {[5, 4, 3, 2].map((g, i) => (
+                            <span key={g} className="rounded px-1.5 py-0.5 text-xs" style={{ backgroundColor: `${GRADE_BAR[3 - i]}1a`, color: GRADE_BAR[3 - i] }}>
+                              <span className="font-bold">{g}</span>: {s.grades[g] ?? 0}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Eng ko'p tavsiya etilgan kasblar */}
             <section className="mt-8">

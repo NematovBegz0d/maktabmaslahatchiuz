@@ -28,6 +28,7 @@ export const Route = createFileRoute("/tests-manage")({
 // Ma'lum test turlari — scoring algoritmi shularga bog'liq
 const TEST_TYPES: { value: string; label: string }[] = [
   { value: "generic", label: "Umumiy (ball yig'indisi) — yangi testlar uchun tavsiya" },
+  { value: "subject", label: "Fan testi (foiz + 1-5 baho, to'g'ri javob kerak)" },
   { value: "eysenck", label: "Ayzenk (temperament: E/N/L subscale)" },
   { value: "holland", label: "Holland RIASEC (R/I/A/S/E/C subscale)" },
   { value: "big5", label: "Big Five (O/C/E/A/N subscale)" },
@@ -36,6 +37,9 @@ const TEST_TYPES: { value: string; label: string }[] = [
   { value: "math_iq", label: "Matematik IQ (to'g'ri javob kaliti kerak)" },
   { value: "raven", label: "Raven IQ (to'g'ri javob kaliti kerak)" },
 ];
+
+// To'g'ri javob kaliti kerak bo'lgan turlar (bilim testlari)
+const KNOWLEDGE_TYPES = new Set(["subject", "math_iq", "raven"]);
 
 interface TestRow {
   id: string;
@@ -162,7 +166,7 @@ function TestsManage() {
                     </div>
                   </div>
 
-                  {expanded === t.id && <QuestionEditor testId={t.id} onChanged={invalidate} />}
+                  {expanded === t.id && <QuestionEditor testId={t.id} testType={t.test_type} onChanged={invalidate} />}
                 </CardContent>
               </Card>
             ))}
@@ -267,11 +271,15 @@ const OPTION_TEMPLATES: Record<string, { value: number; label: string }[]> = {
   "To'g'ri / Noto'g'ri": [{ value: 1, label: "To'g'ri" }, { value: 0, label: "Noto'g'ri" }],
 };
 
-function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () => void }) {
+function QuestionEditor({ testId, testType, onChanged }: { testId: string; testType: string; onChanged: () => void }) {
   const qc = useQueryClient();
+  const isKnowledge = KNOWLEDGE_TYPES.has(testType);
   const [text, setText] = useState("");
   const [subscale, setSubscale] = useState("");
   const [opts, setOpts] = useState<{ value: number; label: string }[]>(OPTION_TEMPLATES["Ha / Yo'q"]);
+  // Bilim testlari uchun: 4 variant matni (A-D) + to'g'ri javob indeksi
+  const [optLabels, setOptLabels] = useState<string[]>(["", "", "", ""]);
+  const [correctIdx, setCorrectIdx] = useState(0);
   const [busy, setBusy] = useState(false);
   const [delId, setDelId] = useState<string | null>(null);
 
@@ -287,39 +295,82 @@ function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () =
     },
   });
 
+  // Bilim testlari uchun to'g'ri javob kalitlari (admin o'qiy oladi)
+  const qIds = (questions ?? []).map((q) => q.id);
+  const { data: keyMap } = useQuery({
+    queryKey: ["manage-keys", testId, qIds.length],
+    enabled: isKnowledge && qIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("question_answer_keys")
+        .select("question_id, correct_answer")
+        .in("question_id", qIds);
+      const map: Record<string, number> = {};
+      (data ?? []).forEach((k) => {
+        const v = (k.correct_answer as { v?: number })?.v;
+        if (typeof v === "number") map[k.question_id] = v;
+      });
+      return map;
+    },
+  });
+
   async function syncCount(n: number) {
     await supabase.from("tests").update({ question_count: n }).eq("id", testId);
   }
 
   function refresh() {
     qc.invalidateQueries({ queryKey: ["manage-questions", testId] });
+    qc.invalidateQueries({ queryKey: ["manage-keys", testId] });
     onChanged();
   }
 
   async function addQuestion(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim()) { toast.error("Savol matni majburiy"); return; }
-    if (opts.length < 2) { toast.error("Kamida 2 ta variant kerak"); return; }
-    setBusy(true);
     const nextNum = (questions ?? []).reduce((m, q) => Math.max(m, q.question_number), 0) + 1;
-    const { error } = await supabase.from("questions").insert({
+
+    // Variantlarni tayyorlash
+    let builtOpts: { value: number; label: string }[];
+    let correctValue = -1;
+    if (isKnowledge) {
+      const filled = optLabels.map((l, i) => ({ label: l.trim(), origIdx: i })).filter((o) => o.label);
+      if (filled.length < 2) { toast.error("Kamida 2 ta variant matni kerak"); return; }
+      const cNew = filled.findIndex((o) => o.origIdx === correctIdx);
+      if (cNew < 0) { toast.error("To'g'ri javobni belgilang (matni bo'sh bo'lmasin)"); return; }
+      builtOpts = filled.map((o, newIdx) => ({ value: newIdx, label: o.label }));
+      correctValue = cNew;
+    } else {
+      if (opts.length < 2) { toast.error("Kamida 2 ta variant kerak"); return; }
+      builtOpts = opts;
+    }
+
+    setBusy(true);
+    const { data: newQ, error } = await supabase.from("questions").insert({
       test_id: testId,
       question_number: nextNum,
       question_text_uz: text.trim(),
       question_type: "single_choice",
-      options: opts,
+      options: builtOpts,
       ...(subscale.trim() ? { subscale: subscale.trim().toUpperCase() } : {}),
-    });
+    }).select("id").single();
+
+    // Bilim testi -> to'g'ri javob kalitini yozamiz
+    if (!error && newQ && isKnowledge) {
+      const { error: keyErr } = await supabase.from("question_answer_keys")
+        .insert({ question_id: newQ.id, correct_answer: { v: correctValue } });
+      if (keyErr) console.error("[answer-key]", keyErr);
+    }
     if (!error) await syncCount((questions ?? []).length + 1);
     setBusy(false);
     if (error) { console.error("[tests-manage]", error); toast.error("Amalni bajarishda xatolik yuz berdi"); return; }
     toast.success(`${nextNum}-savol qo'shildi`);
-    setText(""); setSubscale("");
+    setText(""); setSubscale(""); setOptLabels(["", "", "", ""]); setCorrectIdx(0);
     refresh();
   }
 
   async function removeQuestion(id: string) {
     setDelId(id);
+    // question_answer_keys CASCADE bilan o'chadi
     const { error } = await supabase.from("questions").delete().eq("id", id);
     if (!error) await syncCount(Math.max(0, (questions ?? []).length - 1));
     setDelId(null);
@@ -344,8 +395,15 @@ function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () =
                 <p className="text-sm text-foreground">{q.question_text_uz}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {q.subscale ? `[${q.subscale}] ` : ""}
-                  {(q.options ?? []).map((o) => `${o.label}=${o.value}`).join(", ")}
+                  {isKnowledge
+                    ? (q.options ?? []).map((o) => o.label).join(" · ")
+                    : (q.options ?? []).map((o) => `${o.label}=${o.value}`).join(", ")}
                 </p>
+                {isKnowledge && (
+                  <p className="mt-0.5 text-xs font-medium text-emerald-600">
+                    ✓ To'g'ri: {(q.options ?? []).find((o) => o.value === keyMap?.[q.id])?.label ?? "— (belgilanmagan)"}
+                  </p>
+                )}
               </div>
               <Button
                 variant="ghost" size="icon" disabled={delId === q.id}
@@ -365,27 +423,59 @@ function QuestionEditor({ testId, onChanged }: { testId: string; onChanged: () =
           <Label htmlFor={`q-text-${testId}`} className="text-xs">Savol matni <span className="text-destructive">*</span></Label>
           <Input id={`q-text-${testId}`} value={text} onChange={(e) => setText(e.target.value)} placeholder="Savolni kiriting" />
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        {isKnowledge ? (
+          /* Bilim testi: variant matnlari + to'g'ri javobni belgilash */
           <div className="space-y-2">
-            <Label className="text-xs">Variantlar shabloni</Label>
-            <select
-              value={JSON.stringify(opts)}
-              onChange={(e) => setOpts(JSON.parse(e.target.value))}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {Object.entries(OPTION_TEMPLATES).map(([k, v]) => (
-                <option key={k} value={JSON.stringify(v)}>{k}</option>
-              ))}
-            </select>
+            <Label className="text-xs">Variantlar — to'g'risini belgilang (radio)</Label>
+            {["A", "B", "C", "D"].map((letter, i) => (
+              <div key={letter} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`correct-${testId}`}
+                  checked={correctIdx === i}
+                  onChange={() => setCorrectIdx(i)}
+                  className="h-4 w-4 shrink-0 accent-emerald-600"
+                  aria-label={`${letter} to'g'ri javob`}
+                />
+                <span className="w-4 text-xs font-bold text-muted-foreground">{letter}</span>
+                <Input
+                  value={optLabels[i]}
+                  onChange={(e) => setOptLabels((p) => p.map((v, j) => (j === i ? e.target.value : v)))}
+                  placeholder={`${letter} varianti`}
+                  className="h-9"
+                />
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              Belgilangan to'g'ri javob: <span className="font-semibold text-emerald-600">{["A", "B", "C", "D"][correctIdx]}</span>
+              {optLabels[correctIdx]?.trim() ? ` — ${optLabels[correctIdx].trim()}` : ""}
+            </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor={`q-sub-${testId}`} className="text-xs">Subscale (ixtiyoriy)</Label>
-            <Input id={`q-sub-${testId}`} value={subscale} onChange={(e) => setSubscale(e.target.value)} placeholder="E / N / R / I ..." maxLength={4} />
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Tanlangan variantlar: {opts.map((o) => `${o.label}=${o.value}`).join(", ")}
-        </p>
+        ) : (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs">Variantlar shabloni</Label>
+                <select
+                  value={JSON.stringify(opts)}
+                  onChange={(e) => setOpts(JSON.parse(e.target.value))}
+                  className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {Object.entries(OPTION_TEMPLATES).map(([k, v]) => (
+                    <option key={k} value={JSON.stringify(v)}>{k}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`q-sub-${testId}`} className="text-xs">Subscale (ixtiyoriy)</Label>
+                <Input id={`q-sub-${testId}`} value={subscale} onChange={(e) => setSubscale(e.target.value)} placeholder="E / N / R / I ..." maxLength={4} />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Tanlangan variantlar: {opts.map((o) => `${o.label}=${o.value}`).join(", ")}
+            </p>
+          </>
+        )}
         <Button type="submit" size="sm" disabled={busy}>
           {busy ? <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Qo'shilmoqda...</> : <><Plus className="mr-1.5 h-3.5 w-3.5" /> Savol qo'shish</>}
         </Button>
