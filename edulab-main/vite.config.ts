@@ -11,6 +11,10 @@ export default defineConfig({
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+    // SPA (client-only) rejimi — statik shell (index.html) prerender qilinadi.
+    // Netlify'ga statik sayt sifatida deploy qilish uchun (SSR funksiya kerak emas).
+    // Ma'lumotlar baribir client tomonda Supabase orqali olinadi.
+    spa: { enabled: true, prerender: { outputPath: "/index" } },
   },
   vite: {
     esbuild: {
