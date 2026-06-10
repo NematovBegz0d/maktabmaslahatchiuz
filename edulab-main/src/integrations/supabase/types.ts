@@ -305,7 +305,9 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          is_active: boolean
           parent_id: string | null
+          passport_series: string | null
           school_id: string | null
           updated_at: string
         }
@@ -317,7 +319,9 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id: string
+          is_active?: boolean
           parent_id?: string | null
+          passport_series?: string | null
           school_id?: string | null
           updated_at?: string
         }
@@ -329,7 +333,9 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          is_active?: boolean
           parent_id?: string | null
+          passport_series?: string | null
           school_id?: string | null
           updated_at?: string
         }
@@ -605,6 +611,30 @@ export type Database = {
           full_name: string | null
           gender: string | null
           // id — profiles.id (NOT NULL PK) dan keladi, hech qachon null bo'lmaydi
+          id: string
+          parent_id: string | null
+          passport_series: string | null
+          school_id: string | null
+          school_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      archived_students: {
+        Row: {
+          birth_date: string | null
+          class_letter: string | null
+          class_number: number | null
+          created_at: string | null
+          full_name: string | null
+          gender: string | null
           id: string
           parent_id: string | null
           passport_series: string | null

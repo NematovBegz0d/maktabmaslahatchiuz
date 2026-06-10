@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
 import { ProtectedRoute } from "@/components/protected-route";
 import { AppHeader } from "@/components/app-header";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +11,8 @@ import { AISummary } from "@/components/ai-summary";
 import { QueryError } from "@/components/query-error";
 import { PortfolioSkeleton } from "@/components/portfolio-skeleton";
 import { SocialPortfolio } from "@/components/social-portfolio";
+import { EditStudentDialog } from "@/components/edit-student-dialog";
+import { SubjectResults, type SubjectResult } from "@/components/subject-results";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -16,7 +20,7 @@ import {
 } from "recharts";
 import {
   ArrowLeft, Brain, Zap, Target, TrendingUp, Briefcase,
-  GraduationCap, FileText, User, School, Sparkles, CheckCircle2, Circle, Award, Activity,
+  GraduationCap, FileText, User, School, Sparkles, CheckCircle2, Circle, Award, Activity, Pencil, Archive, Trash2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/students/$id")({
@@ -64,12 +68,55 @@ interface DetailResult {
   raw_scores: Record<string, number> | null;
   scaled_scores: Record<string, number> | null;
   created_at: string;
-  tests: { name_uz: string | null; category?: string | null } | null;
+  tests: { name_uz: string | null; category?: string | null; test_type?: string | null } | null;
 }
 interface DetailTest { id: string; name_uz: string | null }
 
 function StudentDetail() {
   const { id } = Route.useParams();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function deleteStudent(name: string) {
+    if (!confirm(
+      `DIQQAT! "${name}" BUTUNLAY o'chiriladi:\n\n` +
+      `• Profil va login\n` +
+      `• Barcha test natijalari va sessiyalari\n` +
+      `• Klub va kengash a'zoliklari\n\n` +
+      `Bu amalni QAYTARIB BO'LMAYDI. Davom etasizmi?`
+    )) return;
+    setDeleting(true);
+    const { error } = await supabase.functions.invoke("delete-student", { body: { student_id: id } });
+    setDeleting(false);
+    if (error) {
+      console.error("[delete-student]", error);
+      toast.error("O'chirishda xatolik yuz berdi. Qayta urinib ko'ring.");
+      return;
+    }
+    toast.success("O'quvchi butunlay o'chirildi.");
+    qc.invalidateQueries({ queryKey: ["students-list"] });
+    qc.invalidateQueries({ queryKey: ["admin-students"] });
+    navigate({ to: "/students" });
+  }
+
+  async function archiveStudent() {
+    if (!confirm("O'quvchini o'quvchilar safidan chiqarasizmi?\n\nMa'lumotlari (test natijalari) saqlanadi va keyin qaytarish mumkin.")) return;
+    setArchiving(true);
+    const { error } = await supabase.from("profiles").update({ is_active: false }).eq("id", id);
+    setArchiving(false);
+    if (error) {
+      console.error("[archive-student]", error);
+      toast.error("Arxivlashda xatolik yuz berdi.");
+      return;
+    }
+    toast.success("O'quvchi arxivlandi (safdan chiqarildi).");
+    qc.invalidateQueries({ queryKey: ["students-list"] });
+    qc.invalidateQueries({ queryKey: ["admin-students"] });
+    navigate({ to: "/students" });
+  }
 
   const { data: profile, isLoading, isError, refetch } = useQuery({
     queryKey: ["student-detail-profile", id],
@@ -100,7 +147,7 @@ function StudentDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from("test_results")
-        .select("id, test_id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, category)")
+        .select("id, test_id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, category, test_type)")
         .eq("student_id", id)
         .order("created_at", { ascending: false });
       return (data ?? []) as DetailResult[];
@@ -122,6 +169,22 @@ function StudentDetail() {
   const hollandCode = results?.find((r) => r.holland_code)?.holland_code ?? null;
   const temperament = results?.find((r) => r.personality_type)?.personality_type ?? null;
   const completedTestIds = new Set((results ?? []).map((r) => r.test_id));
+
+  // Fan testlari (subject) — alohida ko'rsatiladi
+  const subjectResults: SubjectResult[] = (results ?? [])
+    .filter((r) => r.tests?.test_type === "subject")
+    .map((r) => {
+      const ss = r.scaled_scores ?? {};
+      return {
+        test_id: r.test_id,
+        name: r.tests?.name_uz ?? "Fan",
+        percent: ss.percent ?? 0,
+        grade: ss.grade ?? 0,
+        correct: ss.correct ?? 0,
+        total: ss.total ?? 0,
+      };
+    });
+  const psychResults = (results ?? []).filter((r) => r.tests?.test_type !== "subject");
 
   const sorted = [...radarData].sort((a, b) => b.value - a.value);
   const strengths = sorted.slice(0, 3).filter((x) => x.value >= 50);
@@ -169,11 +232,53 @@ function StudentDetail() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <Link to="/students">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />O'quvchilar ro'yxati
-          </Button>
-        </Link>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <Link to="/students">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />O'quvchilar ro'yxati
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+              <Pencil className="mr-1.5 h-4 w-4" /> Tahrirlash
+            </Button>
+            <Button
+              variant="outline" size="sm" disabled={archiving}
+              onClick={archiveStudent}
+              className="text-amber-600 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/30"
+            >
+              <Archive className="mr-1.5 h-4 w-4" /> {archiving ? "Arxivlanmoqda..." : "Safdan chiqarish"}
+            </Button>
+            <Button
+              variant="outline" size="sm" disabled={deleting}
+              onClick={() => deleteStudent(profile.full_name ?? "o'quvchi")}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" /> {deleting ? "O'chirilmoqda..." : "O'chirish"}
+            </Button>
+          </div>
+        </div>
+
+        <EditStudentDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          student={{
+            id,
+            full_name: profile.full_name ?? null,
+            passport_series: (profile as { passport_series?: string | null }).passport_series ?? null,
+            class_number: profile.class_number ?? null,
+            class_letter: profile.class_letter ?? null,
+            gender: (profile as { gender?: string | null }).gender ?? null,
+            birth_date: (profile as { birth_date?: string | null }).birth_date ?? null,
+            school_id: profile.school_id ?? null,
+          }}
+          onSaved={() => {
+            qc.invalidateQueries({ queryKey: ["student-detail-profile", id] });
+            qc.invalidateQueries({ queryKey: ["students-list"] });
+            qc.invalidateQueries({ queryKey: ["admin-students"] });
+            refetch();
+          }}
+        />
 
         {/* ── 1. SARLAVHA KARTI ─────────────────────────────────── */}
         <Card className="mb-6 overflow-hidden border-border/60" style={{ boxShadow: "var(--shadow-soft)" }}>
@@ -383,15 +488,18 @@ function StudentDetail() {
           </div>
         )}
 
-        {/* ── 5. TEST NATIJALARI ─────────────────────────────────── */}
-        {results && results.length > 0 && (
+        {/* ── Fan bilimlari (subject testlar) ──────────────────────── */}
+        <SubjectResults items={subjectResults} />
+
+        {/* ── 5. TEST NATIJALARI (psixologik) ─────────────────────── */}
+        {psychResults.length > 0 && (
           <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
             <CardContent className="p-6">
               <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" /> Test natijalari
               </h3>
               <div className="space-y-3">
-                {results.map((r) => {
+                {psychResults.map((r) => {
                   const scores = (r.scaled_scores ?? r.raw_scores) as Record<string, number> | null;
                   return (
                     <div key={r.id} className="rounded-xl border border-border/50 p-4">

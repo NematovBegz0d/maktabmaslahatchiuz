@@ -86,7 +86,7 @@ function MyReport() {
     queryFn: async () => {
       const { data } = await supabase
         .from("test_results")
-        .select("id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz)")
+        .select("id, holland_code, personality_type, raw_scores, scaled_scores, created_at, tests(name_uz, test_type)")
         .eq("student_id", user!.id)
         .order("created_at", { ascending: false });
       return (data ?? []) as ReportResult[];

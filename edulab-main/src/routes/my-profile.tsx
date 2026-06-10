@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AISummary } from "@/components/ai-summary";
+import { SubjectResults, type SubjectResult } from "@/components/subject-results";
 import { QueryError } from "@/components/query-error";
 import { PortfolioSkeleton } from "@/components/portfolio-skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -178,6 +179,22 @@ function MyProfile() {
   const completedTestIds = new Set((results ?? []).map((r) => r.test_id));
   const totalTests = allTests?.length ?? 8;
   const completedCount = completedTestIds.size;
+
+  // Fan testlari (subject) — alohida; psixologik natijalardan ajratamiz
+  const subjectResults: SubjectResult[] = (results ?? [])
+    .filter((r) => r.tests?.test_type === "subject")
+    .map((r) => {
+      const ss = (r.scaled_scores as Record<string, number> | null) ?? {};
+      return {
+        test_id: r.test_id,
+        name: r.tests?.name_uz ?? "Fan",
+        percent: ss.percent ?? 0,
+        grade: ss.grade ?? 0,
+        correct: ss.correct ?? 0,
+        total: ss.total ?? 0,
+      };
+    });
+  const psychResults = (results ?? []).filter((r) => r.tests?.test_type !== "subject");
 
   // Kuchli va zaif tomonlar — radar ma'lumotidan
   const sorted = [...radarData].sort((a, b) => b.value - a.value);
@@ -473,15 +490,18 @@ function MyProfile() {
           </div>
         )}
 
-        {/* ── 5. HAR BIR TEST NATIJALARI ──────────────────────────── */}
-        {results && results.length > 0 && (
+        {/* ── Fan bilimlari (subject testlar) ──────────────────────── */}
+        <SubjectResults items={subjectResults} />
+
+        {/* ── 5. HAR BIR TEST NATIJALARI (psixologik) ─────────────── */}
+        {psychResults.length > 0 && (
           <Card className="mb-6 border-border/60" style={{ boxShadow: "var(--shadow-card)" }}>
             <CardContent className="p-6">
               <h3 className="mb-4 font-semibold text-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" /> Test natijalari
               </h3>
               <div className="space-y-3">
-                {results.map((r) => {
+                {psychResults.map((r) => {
                   const raw = r.raw_scores as Record<string, number> | null;
                   const scaled = r.scaled_scores as Record<string, number> | null;
                   const scores = scaled ?? raw;

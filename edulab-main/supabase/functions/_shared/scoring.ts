@@ -139,6 +139,30 @@ function scoreIQ(qs: QuestionLite[], answers: AnswerMap, keys: KeyMap): ScoredRe
   };
 }
 
+// --- Fan testlari (Tarix, Ingliz tili, Matematika) — to'g'ri javob -> foiz + baho ---
+function scoreSubject(qs: QuestionLite[], answers: AnswerMap, keys: KeyMap): ScoredResult {
+  let correct = 0;
+  let total = 0;
+  for (const q of qs) {
+    if (!(q.id in keys)) continue;
+    total += 1;
+    if ((answers[q.id] ?? -999) === keys[q.id]) correct += 1;
+  }
+  const percent = total > 0 ? round((correct / total) * 100) : 0;
+  // O'zbekiston 5 balli baho tizimi
+  // 86-100% -> 5 (a'lo), 71-85% -> 4 (yaxshi), 56-70% -> 3 (qoniqarli), <56% -> 2
+  let grade = 2;
+  if (percent >= 86) grade = 5;
+  else if (percent >= 71) grade = 4;
+  else if (percent >= 56) grade = 3;
+  return {
+    rawScores: { correct, total },
+    scaledScores: { percent, grade, correct, total },
+    personalityType: null,
+    hollandCode: null,
+  };
+}
+
 // --- Umumiy (EQ, Liderlik, Schulte, va boshqalar) ------------------
 function scoreGeneric(qs: QuestionLite[], answers: AnswerMap): ScoredResult {
   let sum = 0;
@@ -174,6 +198,8 @@ export function scoreTest(
     case "raven":
     case "math_iq":
       return scoreIQ(qs, answers, keys);
+    case "subject":
+      return scoreSubject(qs, answers, keys);
     default:
       return scoreGeneric(qs, answers);
   }

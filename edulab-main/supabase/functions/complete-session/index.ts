@@ -80,7 +80,7 @@ Deno.serve(async (req: Request) => {
 
     // 8) To'g'ri javoblar (faqat IQ testlar uchun, service_role o'qiydi)
     const keys: KeyMap = {};
-    if (testType === "raven" || testType === "math_iq") {
+    if (testType === "raven" || testType === "math_iq" || testType === "subject") {
       const qIds = qs.map((q) => q.id);
       const { data: keyRows } = await admin
         .from("question_answer_keys")
